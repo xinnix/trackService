@@ -22,9 +22,9 @@ public class TrackResources {
 		@POST
 	   @Path("track")
 	   @Produces(MediaType.APPLICATION_JSON)
-	   public List<Track> checkLogin(@FormParam("carid") int carid,
-	                            @FormParam("sdate") String sdate,
-	                            @FormParam("edate") String edate) {
+	   public List<Track> checkLogin(@FormParam("carId") int carid,
+	                            @FormParam("start_time") String sdate,
+	                            @FormParam("end_time") String edate) {
 
 		   
 //		   List TrackList = new ArrayList();
@@ -36,7 +36,7 @@ public class TrackResources {
 //	    	  
 //	       }
 		   try{
-			    Thread.currentThread().sleep(2000);
+			    Thread.currentThread().sleep(4000);
 			}catch(InterruptedException ie){
 			    ie.printStackTrace();
 			}
