@@ -195,8 +195,13 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 					 
 					 break;
 				 case DPacketParser.SIGNAL_RE_GETCARTRACK:
-					 TrackApp.curTrackList = MsgEventHandler.rGetCarTrack(dp);	
-					 
+					 TrackApp.curTrackList = MsgEventHandler.rGetCarTrack(dp);
+					 Map<String, Track> track= new HashMap<String, Track>();
+					 for (int ii=0;ii<TrackApp.curTrackList.length;ii++){
+						 track.put(""+ii, TrackApp.curTrackList[ii]);
+					 }
+					 devRef = ref.child("tracklist");
+					 devRef.setValue(track);
 					 break;
 //				 case DPacketParser.SIGNAL_RE_GETALARMLIST:
 //					 Alarm[] alarmList = MsgEventHandler.rGetAlarmList(dp);	
@@ -209,8 +214,12 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 //					 break;	
 				 case DPacketParser.SIGNAL_FAIL:
 					 TrackApp.curFail = MsgEventHandler.rFail(dp);
-	
+					 devRef = ref.child("error");
+					 Map<String, Fail> fail= new HashMap<String, Fail>();
+					 fail.put(""+TrackApp.curFail.signal, TrackApp.curFail);
+					 devRef.setValue(fail);
 					 break;
+					
 				 }
 			
 			 

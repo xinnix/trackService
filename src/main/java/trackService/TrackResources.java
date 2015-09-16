@@ -16,7 +16,7 @@ import com.cloudbean.network.MsgEventHandler;
 import com.cloudbean.trackme.TrackApp;
 import com.sun.xml.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
-@Path("/")
+@Path("/track")
 public class TrackResources {
 	
 		@POST

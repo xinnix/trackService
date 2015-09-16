@@ -17,7 +17,7 @@ public class LoginResources {
 	
 	
 	   @POST
-	   @Path("a")
+	   @Path("login")
 	   @Produces(MediaType.APPLICATION_JSON)
 	   public Login checkLogin(@FormParam("username") String username,
 	                            @FormParam("password") String password) {
