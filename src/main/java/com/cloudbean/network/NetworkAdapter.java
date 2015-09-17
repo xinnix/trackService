@@ -16,6 +16,7 @@ import com.cloudbean.model.Login;
 import com.cloudbean.model.Track;
 import com.cloudbean.packet.DPacketParser;
 import com.cloudbean.trackerUtil.ByteHexUtil;
+import com.cloudbean.trackerUtil.GpsCorrect;
 import com.cloudbean.trackme.TrackApp;
 import com.wilddog.client.Wilddog;
 
@@ -198,7 +199,16 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 					 TrackApp.curTrackList = MsgEventHandler.rGetCarTrack(dp);
 					 Map<String, Track> track= new HashMap<String, Track>();
 					 for (int ii=0;ii<TrackApp.curTrackList.length;ii++){
-						 track.put(""+ii, TrackApp.curTrackList[ii]);
+						 Track curTrackNode = TrackApp.curTrackList[ii];
+						 
+						 // GPS correct
+						 double[] correctXY = new double[2];
+ 						 GpsCorrect.transform(curTrackNode.latitude, curTrackNode.longitude, correctXY);
+ 						 curTrackNode.latitude = correctXY[0];
+ 						 curTrackNode.longitude = correctXY[1];
+ 						 
+						 track.put(""+ii, curTrackNode);
+						
 					 }
 					 devRef = ref.child("tracklist");
 					 devRef.setValue(track);

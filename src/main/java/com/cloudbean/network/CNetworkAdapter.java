@@ -18,6 +18,7 @@ import com.cloudbean.packet.CPacketParser;
 import com.cloudbean.packet.DPacketParser;
 import com.cloudbean.packet.MsgGPRSParser;
 import com.cloudbean.trackerUtil.ByteHexUtil;
+import com.cloudbean.trackerUtil.GpsCorrect;
 import com.cloudbean.trackme.TrackApp;
 import com.wilddog.client.Wilddog;
 
@@ -172,13 +173,13 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 				 case MsgGPRSParser.MSG_TYPE_POSITION:
 					 CarState cs =MsgEventHandler.c_rGetCarPosition(mgp);
  					 if(cs.gprmc.latitude!=0&&cs.gprmc.longitude!=0){
-//						 for(int ii=0;ii<TrackApp.carList.length;ii++){
-//							 if(cs.devid.equals(TrackApp.carList[ii].devId)){
-//								 TrackApp.carList[ii].setLastState(cs);
-//								 TrackApp.carList[ii].alive++;
-//							 }
-//						 }
-						
+
+						 // GPS correct
+ 						 double[] correctXY = new double[2];
+ 						 GpsCorrect.transform(cs.gprmc.latitude, cs.gprmc.longitude, correctXY);
+ 						 cs.gprmc.latitude = correctXY[0];
+ 						 cs.gprmc.longitude = correctXY[1];
+ 						 
 						 carPosition.put(cs.devid, cs);
 						 Wilddog devRef = ref.child("position");
 						 devRef.setValue(carPosition);
