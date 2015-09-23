@@ -10,14 +10,13 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
-import com.cloudbean.trackme.TrackApp;
 import com.wilddog.client.Wilddog;
 
 
 public abstract class BaseNetworkAdapter extends Thread{
 	private static final int NETWORK_CONNECTED = 0;
 	private static final int NETWORK_DISCONNECT = 1;
-	Wilddog ref = new Wilddog("https://track-translator.wilddogio.com/");
+	public MsgEventHandler handler= new MsgEventHandler();
 	
 	private int networkState;
 
@@ -32,7 +31,7 @@ public abstract class BaseNetworkAdapter extends Thread{
 	public  Socket socket;
 	public  OutputStream outputStream;
 	public  InputStream inputStream;
-	
+	public  Wilddog wdRootRef;
 	
 	public  DataInputStream dis;
 	 
@@ -44,6 +43,9 @@ public abstract class BaseNetworkAdapter extends Thread{
 	private String serverIP = null;
 	private int port = 0;
 
+	public void setWdRootRef(Wilddog ref){
+		this.wdRootRef = ref;
+	}
 	public BaseNetworkAdapter(String serverIP, int port) {
 		super();
 		this.serverIP = serverIP;
@@ -64,11 +66,11 @@ public abstract class BaseNetworkAdapter extends Thread{
 							 inputStream = socket.getInputStream();
 							 dis =  new DataInputStream((new BufferedInputStream(inputStream)));
 							 setNetworkState(NETWORK_CONNECTED);
-							 if(TrackApp.curUsername!=null){
-								MsgEventHandler.sLogin(TrackApp.curUsername, TrackApp.curPassword);
-								MsgEventHandler.c_sLogin(TrackApp.curUsername, TrackApp.curPassword);
-							 }
-							 
+//							 if(TrackApp.curUsername!=null){
+//								MsgEventHandler.sLogin(TrackApp.curUsername, TrackApp.curPassword);
+//								MsgEventHandler.c_sLogin(TrackApp.curUsername, TrackApp.curPassword);
+//							 }
+//							 
 							 while(true){
 								 try{
 									 recivePacket(); 
@@ -93,6 +95,7 @@ public abstract class BaseNetworkAdapter extends Thread{
 		 }
 	}.start();
 	}
+	
 	 public void sendPacket(byte[] packet){
 		 try{
 			 this.sendBuffer = packet;
@@ -106,10 +109,5 @@ public abstract class BaseNetworkAdapter extends Thread{
 	 
 	 
 	 public abstract void recivePacket() throws Exception;
-	 
-//	 public void run(){
-//		 while(true){
-//			 recivePacket();
-//		 }
-//	 }
+
 }

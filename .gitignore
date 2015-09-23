@@ -10,3 +10,4 @@ pom.xml
 .settings/org.eclipse.jdt.core.prefs
 *.prefs
 .#webclasspath
+/target/

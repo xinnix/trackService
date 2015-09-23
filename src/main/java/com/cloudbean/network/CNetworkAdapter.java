@@ -19,10 +19,7 @@ import com.cloudbean.packet.DPacketParser;
 import com.cloudbean.packet.MsgGPRSParser;
 import com.cloudbean.trackerUtil.ByteHexUtil;
 import com.cloudbean.trackerUtil.GpsCorrect;
-import com.cloudbean.trackme.TrackApp;
 import com.wilddog.client.Wilddog;
-
-
 
 public class CNetworkAdapter extends BaseNetworkAdapter {
 	
@@ -38,19 +35,14 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 	
 	 public CNetworkAdapter(final String serverIP,final int port){
 		super(serverIP,port);
-
 		connect(); 
+		System.out.println("start socket of c-networkAdapter");
 	 }
 
 	 public CNetworkAdapter(byte[] packet){
 		 super(packet);
 	 }
-	 
-//	 public void setHandler(Handler hd){
-//		 handler = hd;
-//	 }
-//	 
-	 
+ 
 	 public byte[] preParser(){
 		 
 		 ByteArrayOutputStream  bos = new ByteArrayOutputStream();
@@ -77,72 +69,6 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 		 return buf;
 	 }
 	 
-//	 public void run(){
-//		 while(true){
-//			 try{		  			 			 
-//				 	byte[] packetByte  = preParser(inputStream);
-//				 	Message msg = TrackApp.curHandler.obtainMessage();
-//				 	Bundle b = new Bundle();
-//					CPacketParser cp = new CPacketParser(packetByte);
-//					 switch (cp.pktSignal){
-//					 case CPacketParser.SIGNAL_RE_LOGIN:
-//						 MsgEventHandler.c_rLogin(cp);
-//						 msg.what =MSG_LOGIN;
-//						 break;
-//					 case CPacketParser.SIGNAL_RELAY:
-//						 MsgGPRSParser mgp =  new MsgGPRSParser(Arrays.copyOfRange(cp.pktData, 4, cp.pktData.length));
-//						 
-//						 switch(mgp.msgType){
-//						 case MsgGPRSParser.MSG_TYPE_DEF:
-//							
-//							 b.putString("devid", mgp.msgTermID);
-//							 b.putString("res", mgp.msgData);
-//							 msg.what =MSG_DEF;
-//							 msg.setData(b);
-//							 TrackApp.curHandler.sendMessage(msg);
-//							 break;
-//						 case MsgGPRSParser.MSG_TYPE_POSITION:
-//							 CarState cs =MsgEventHandler.c_rGetCarPosition(mgp);
-//							 if(cs.gprmc.latitude!=0&&cs.gprmc.longitude!=0){
-//								 b.putDouble("lat", cs.gprmc.latitude);
-//								 b.putDouble("lon", cs.gprmc.longitude);
-//								 b.putString("speed", cs.gprmc.speed);
-//								 b.putString("ditant", cs.distant);
-//								 b.putString("date", cs.gprmc.date);
-//								 b.putString("devid", cs.devid);
-//								 b.putString("voltage", cs.voltage);
-//								 b.putString("gsmStrength", cs.gsmStrength);
-//								
-//								 msg.setData(b);
-//								 msg.what = MSG_POSITION;
-//								 TrackApp.curHandler.sendMessage(msg);
-//							 }
-//							 break;
-//						 case MsgGPRSParser.MSG_TYPE_CIRCUIT:
-//							 String test = ByteHexUtil.bytesToHexString(mgp.msgByteBuf);
-//							 b.putString("devid", mgp.msgTermID);
-//							 b.putString("res", mgp.msgData);
-//							 msg.what =MSG_CIRCUIT;
-//							 msg.setData(b);
-//							 TrackApp.curHandler.sendMessage(msg);
-//							 break;
-//						 }
-//						
-//						 break;
-//					
-//						
-//	
-//				 }
-//				 
-//
-//			 }catch(Exception e ){
-//				e.printStackTrace(); 
-//			 }
-//			 	  
-//		 }
-//			
-//	 }
-
 
 	@Override
 	public void recivePacket() throws Exception {
@@ -154,7 +80,7 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 			
 			 switch (cp.pktSignal){
 			 case CPacketParser.SIGNAL_RE_LOGIN:
-				 int i =MsgEventHandler.c_rLogin(cp);
+				 int i = this.handler.c_rLogin(cp);
 				 //msg.what =MSG_LOGIN;
 				 break;
 			 case CPacketParser.SIGNAL_PREPOSITION:
@@ -171,7 +97,7 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 					
 					 break;
 				 case MsgGPRSParser.MSG_TYPE_POSITION:
-					 CarState cs =MsgEventHandler.c_rGetCarPosition(mgp);
+					 CarState cs =this.handler.c_rGetCarPosition(mgp);
  					 if(cs.gprmc.latitude!=0&&cs.gprmc.longitude!=0){
 
 						 // GPS correct
@@ -181,7 +107,7 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
  						 cs.gprmc.longitude = correctXY[1];
  						 
 						 carPosition.put(cs.devid, cs);
-						 Wilddog devRef = ref.child("position");
+						 Wilddog devRef = wdRootRef.child("position");
 						 devRef.setValue(carPosition);
 						
 					 }
@@ -190,28 +116,19 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 					 String test = ByteHexUtil.bytesToHexString(mgp.msgByteBuf);
 					 break;
 				 case MsgGPRSParser.MSG_TYPE_ALARM:
-					if(TrackApp.isLogin==true){
-						 Alarm al = MsgEventHandler.c_rGetAlarmInfo(mgp);
-						 TrackApp.alarmList.add(al);
-						 Map<String, Alarm> carAlarm= new HashMap<String, Alarm>();
-						 carAlarm.put(al.devid, al);
-						 Wilddog devRef = ref.child("alarm");
-						 devRef.setValue(carAlarm);
-						
-					}
-					 
+					 Alarm al = this.handler.c_rGetAlarmInfo(mgp);
+					 Map<String, Alarm> carAlarm= new HashMap<String, Alarm>();
+					 carAlarm.put(al.devid, al);
+					 Wilddog devRef = wdRootRef.child("alarm");
+					 devRef.setValue(carAlarm);
 					 break;
 				 }
-			
-
-		 }
-
+			}
 	 }catch(Exception e ){
 		throw e; 
 		
 	 }
 	 	  
-
 	}
 
 }
