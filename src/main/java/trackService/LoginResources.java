@@ -33,6 +33,15 @@ public class LoginResources {
 				System.out.println(username + " start to create the connection...");
 				SocketListener.mainTranslator.putTrackAppClient(username);
 				appClient = SocketListener.mainTranslator.getTrackAppClient(username);
+				
+				// wait for the appClient init with na and nac's threads, 
+				// before you can read and write with the socket.
+				try {
+					Thread.currentThread().sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				appClient.getNa().sendLoginCmd(username, password);
 				appClient.getCna().sendLoginCmd(username, password);				
 			} else {
