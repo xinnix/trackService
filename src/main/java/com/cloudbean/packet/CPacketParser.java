@@ -7,11 +7,8 @@ import com.cloudbean.trackerUtil.ByteHexUtil;
 
 public class CPacketParser {
 	
-	
 	public final static short PACKET_HEADER = 0x2929; 
 	public final static byte PACKET_END = (byte)0x0d; 
-	
-	
 	
 	public final static byte SIGNAL_LOGIN = (byte)0xa3; 
 	public final static byte SIGNAL_RE_LOGIN = (byte)0xe3; 
@@ -83,7 +80,7 @@ public class CPacketParser {
 	 */
 	public CPacketParser(byte[] pktBuffer){
 		
-		System.out.println(ByteHexUtil.bytesToHexString(pktBuffer));
+		// System.out.println(ByteHexUtil.bytesToHexString(pktBuffer));
 		int head = 0;
 		
 		this.pktHead = ByteHexUtil.byteToShort(Arrays.copyOfRange(pktBuffer,head,head+=2));
