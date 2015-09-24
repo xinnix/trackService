@@ -2,66 +2,36 @@ package trackService;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-
-
-
-import com.cloudbean.network.HeartBeat;
-//import com.cloudbean.network.CNetworkAdapter;
-//import com.cloudbean.network.HeartBeat;
-//import com.cloudbean.network.MsgEventHandler;
-//import com.cloudbean.network.NetworkAdapter;
-//import com.cloudbean.trackme.TrackAppClient;
+import com.cloudbean.trackme.TrackAppClient;
 import trackService.MainTranslator;
-
 
 public class SocketListener implements ServletContextListener{
 
-	
 	public static MainTranslator mainTranslator = new MainTranslator();
 		
-	
 	@Override
-	public void contextDestroyed(ServletContextEvent arg0) {
-		// TODO Auto-generated method stub
+	public void contextDestroyed(ServletContextEvent arg0) {		
 		try{
-			// TODO iterate the mainTranslator Mapset to stop every connnet.
-//			na.interrupt();
-//			cna.interrupt();
-//			na.socket.close();
-//			cna.socket.close();
+			// iterate the mainTranslator MapSet to stop every connection.
+			for(TrackAppClient client: mainTranslator.mobClientSet.values()){
+				client.getNa().interrupt();
+				client.getCna().interrupt();
+				// closing na  socket.
+				System.out.println("closing na  socket.");
+				client.getNa().getSocket().close();
+				// closing cna  socket.
+				client.getCna().getSocket().close();
+			}
 		}catch(Exception e){
 			
 		}
-		
-		
-	}
-	private String[] decodeAddr(String addr){
-		return addr.split(":");
-		
-	}
-	@Override
-	public void contextInitialized(ServletContextEvent arg0) {
-		// TODO iterate all the TrackAppClient in the mainTranslator Mapset
-//		String[] d = decodeAddr(TrackApp.dServerAddr);
-//		String[] c = decodeAddr(TrackApp.cServerAddr);
-//		
-//		dip = d[0];
-//		dport = Integer.parseInt(d[1]);
-//		
-//		cip = c[0];
-//		cport = Integer.parseInt(c[1]);
-		
-//		na = new NetworkAdapter(dip,dport);
-//		cna = new CNetworkAdapter(cip,cport);
-//		hb = new HeartBeat();
-//		hb.setHandler(handler);
-//		MsgEventHandler.config(na, cna);
-		System.out.println("started");
 	}
 	
-//	public void hreatBeat(){
-//		if(hb.isInterrupted())
-//		hb.start();	
-//	}
-
+	@Override
+	public void contextInitialized(ServletContextEvent arg0) {
+		// the whole system entry point for the web server.
+		// web server  Èë¿Ú
+		System.out.println("JAVIS, let's rock and roll");
+	}
+	
 }

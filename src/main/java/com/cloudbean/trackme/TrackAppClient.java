@@ -2,13 +2,10 @@ package com.cloudbean.trackme;
 
 import com.cloudbean.network.NetworkAdapter;
 import com.cloudbean.network.CNetworkAdapter;
-import com.cloudbean.network.HeartBeat;
-import com.cloudbean.network.MsgEventHandler;
 import com.wilddog.client.Wilddog;
 import com.cloudbean.model.*;
 
-public class TrackAppClient {
-	private MsgEventHandler handler  ; 
+public class TrackAppClient { 
 	private Wilddog wdRootRef;
 	private User  user = null;
 	private Login  login = null;
@@ -20,28 +17,22 @@ public class TrackAppClient {
 	private String curUserid = null;
 	private Track[] curTrackList = null;
 	private Fail curFail = null;
-	private NetworkAdapter na ;
-	private CNetworkAdapter cna ;
-	private HeartBeat hb;
+	private NetworkAdapter na;
+	private CNetworkAdapter cna;
 	public static String dServerIP = "61.145.122.143";
 	public static int dServerPort = 4519;
 	public static String cServerIP  = "61.145.122.143";
 	public static int cServerPort  = 4508;
 	
 	public TrackAppClient(String name){
-		this.handler = new MsgEventHandler();
-		na = new NetworkAdapter(dServerIP, dServerPort);
-		cna = new CNetworkAdapter(cServerIP, cServerPort);
-		hb = new HeartBeat();
-		hb.setHandler(this.handler);
-		this.handler.config(na, cna);
-		this.wdRootRef = new Wilddog("https://track-translator.wilddogio.com/" + name);
+		this.na = new NetworkAdapter(dServerIP, dServerPort);
+		this.cna= new CNetworkAdapter(cServerIP, cServerPort);		
+		this.wdRootRef = new Wilddog("https://track-translator.wilddogio.com/" + name);		
+		this.na.setWdRootRef(this.wdRootRef);
+		this.cna.setWdRootRef(this.wdRootRef);
+		System.out.println("client " + name  + " with a wilddog root ref is " + "https://track-translator.wilddogio.com/" + name);
 	}
 	
-	public MsgEventHandler getHandler() {
-		return handler;
-	}
-
 	public Wilddog getWdRootRef() {
 		return wdRootRef;
 	}
@@ -125,18 +116,29 @@ public class TrackAppClient {
 	public void setCurFail(Fail curFail) {
 		this.curFail = curFail;
 	}
-
-	
 	
 	public void login(String username, String password){
-		// run a thread to create socket
-		handler.sLogin(username, password);
+		this.na.sendLoginCmd(username, password);
 	}
 	
 	public void logout(String username){
 		// handler.sLogout();
 	}
-	
-	
-	
+
+	public NetworkAdapter getNa() {
+		return na;
+	}
+
+	public void setNa(NetworkAdapter na) {
+		this.na = na;
+	}
+
+	public CNetworkAdapter getCna() {
+		return cna;
+	}
+
+	public void setCna(CNetworkAdapter cna) {
+		this.cna = cna;
+	}
+		
 }

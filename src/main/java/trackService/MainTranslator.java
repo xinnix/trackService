@@ -11,6 +11,7 @@ public class MainTranslator {
 	public MainTranslator(){
 		mobClientSet = new HashMap<String, TrackAppClient>();
 	}
+	
 	public void putTrackAppClient(String name){
 		mobClientSet.put(name, new TrackAppClient(name));
 	}
@@ -18,4 +19,5 @@ public class MainTranslator {
 	public TrackAppClient getTrackAppClient(String name){
 		return mobClientSet.get(name);
 	}
+
 }

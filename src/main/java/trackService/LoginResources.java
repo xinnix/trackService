@@ -14,46 +14,34 @@ import trackService.MainTranslator;
 
 @Path("/login")
 public class LoginResources {
-	
-	
-	   @POST
-	   @Path("login")
-	   @Produces(MediaType.APPLICATION_JSON)
-	   public Login checkLogin(@FormParam("username") String username,
-	                            @FormParam("password") String password) {
 
-		   	   
-		   if(username!=null&&password!=null){
-			   System.out.println(username);
-			   TrackAppClient appClient = null;	
-			    appClient = SocketListener.mainTranslator.getTrackAppClient(username);
-			   
-			   if(appClient!=null){
-				   SocketListener.mainTranslator.putTrackAppClient(username);
-				   appClient = SocketListener.mainTranslator.getTrackAppClient(username);
-			   }
-			   
-			   
-			   appClient.getHandler().sLogin(username, password);
-			   appClient.getHandler().c_sLogin(username, password);
-			   
 
-			   try{
-				    Thread.currentThread().sleep(1000);
-				}catch(InterruptedException ie){
-				    ie.printStackTrace();
-				}
-			   
-			   if(appClient.getLogin()!=null){
-				   appClient.setCurUsername(username);
-				   appClient.setCurPassword(password);
-				 
-			   }
-		       
-		       return appClient.getLogin();
-		   }
+	@POST
+	@Path("login")
+	@Produces("text/plain")
+	public String checkLogin(
+			@FormParam("username") String username,
+			@FormParam("password") String password) {
 
-		   return null;
-	   }
+		if(username!=null&&password!=null){
+			System.out.println(username + " is connecting...");
+			
+			TrackAppClient appClient = null;	
+			appClient = SocketListener.mainTranslator.getTrackAppClient(username);
 
+			if(appClient == null){
+				System.out.println(username + " start to create the connection...");
+				SocketListener.mainTranslator.putTrackAppClient(username);
+				appClient = SocketListener.mainTranslator.getTrackAppClient(username);
+				appClient.getNa().sendLoginCmd(username, password);
+				appClient.getCna().sendLoginCmd(username, password);				
+			} else {
+				System.out.println(username + " has connected, return the ref directly.");
+			}
+			
+			//  return a wilddog ref not a tracklist
+			return username+"/login";				
+		}
+		return null;
+	}
 }

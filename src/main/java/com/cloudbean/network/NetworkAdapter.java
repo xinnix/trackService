@@ -59,31 +59,29 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 		 return bos.toByteArray();
 	 }
  
-	public void recivePacket() throws Exception {
-		// TODO Auto-generated method stub
-
-		 try{
-			 
-			 byte[] packetByte  = preParser();
-				 
+	 public void recivePacket() throws Exception {
+		 try{			 
+			 byte[] packetByte  = preParser();				 
 				 DPacketParser dp = new DPacketParser(packetByte);
+				
+				 
 				 switch (dp.pktSignal){
-				 case DPacketParser.SIGNAL_RE_LOGIN:			 
+				 case DPacketParser.SIGNAL_RE_LOGIN:	
+					 System.out.println("Receving packet type: login");
 					 Login l = this.handler.rLogin(dp);
-					 // todo: pass to TrackApp
-//					 TrackApp.curUserid = ""+l.userid;
-//					 TrackApp.login = l;
-					 this.handler.sGetCarInfo(l.userid,"");
-					 this.handler.sGetCarGroup(l.userid,"");
-					 this.handler.c_sGetAllLastPosition();
+					 Map<String, Login> loginInfo= new HashMap<String, Login>();
+					 loginInfo.put(""+l.userid, l);
+					 devRef = wdRootRef.child("login");
+					 devRef.setValue(loginInfo);					 
+					 this.sendGetCarInfoCmd(l.userid, "");
+					 this.sendGetCarGroupCmd(l.userid, "");					
 					 break;
 				 case DPacketParser.SIGNAL_RE_HEARTBEAT:
 					 System.out.println("heart beat");
 					 break;
 				 case DPacketParser.SIGNAL_RE_GETCARGROUP:
+					 System.out.println("Receving packet type: carGroupInfo");
 					 CarGroup[] carGroupList = this.handler.rGetCarGroup(dp);
-					 // todo: pass to trackApp
-//					 TrackApp.carGroupList = carGroupList;
 					 Map<String, CarGroup> carGroup= new HashMap<String, CarGroup>();
 					 for (int ii=0;ii<carGroupList.length;ii++){
 						 carGroup.put(""+carGroupList[ii].vehGroupID, carGroupList[ii]);
@@ -92,13 +90,12 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 					 devRef.setValue(carGroup);
 					 break;
 				 case DPacketParser.SIGNAL_RE_GETUSERINFO:
+					 System.out.println("Receving packet type: get user info");
 					 this.handler.rGetUserInfo(dp);
 					 break;
 				 case DPacketParser.SIGNAL_RE_GETCARINFO:
+					 System.out.println("Receving packet type: get car info");
 					 Car[] carList=this.handler.rGetCarInfo(dp);
-					 // todo: pass to TrackApp
-//					 TrackApp.carList = carList;
-//					 TrackApp.currentCar = carList[0];
 					 Map<String, Car> car= new HashMap<String, Car>();
 					 for (int ii=0;ii<carList.length;ii++){
 						 car.put(""+carList[ii].id, carList[ii]);
@@ -108,8 +105,7 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 					 
 					 break;
 				 case DPacketParser.SIGNAL_RE_GETCARTRACK:
-					 //todo: pass to TrackApp
-					 // TrackApp.curTrackList = this.handler.rGetCarTrack(dp);
+					 System.out.println("Receving packet type: get car track");
 					 Track[] curTrackList = this.handler.rGetCarTrack(dp);
 					 Map<String, Track> track= new HashMap<String, Track>();
 					 for (int ii=0;ii<curTrackList.length;ii++){
@@ -121,8 +117,7 @@ public class NetworkAdapter extends BaseNetworkAdapter {
  						 curTrackNode.latitude = correctXY[0];
  						 curTrackNode.longitude = correctXY[1];
  						 
-						 track.put(""+ii, curTrackNode);
-						
+						 track.put(""+ii, curTrackNode);						
 					 }
 					 devRef = wdRootRef.child("tracklist");
 					 devRef.setValue(track);
@@ -137,6 +132,7 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 //					 TrackApp.curHandler.sendMessage(msg);
 //					 break;	
 				 case DPacketParser.SIGNAL_FAIL:
+					 System.out.println("Receving packet type: Fail");
 					 Fail curFail = this.handler.rFail(dp);
 					 devRef = wdRootRef.child("error");
 					 Map<String, Fail> fail= new HashMap<String, Fail>();
@@ -147,12 +143,42 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 		 }catch(Exception e ){
 			throw e; 
 		 }
-		 	  
-	 
 	}
 	
+	// send login packet command
+	 public void sendLoginCmd(String username, String password){
+		 byte[] dataPacket = this.handler.sLogin(username, password);
+		 this.sendPacket(dataPacket);
+	 }
+	 
+	 public void sendHeartBeat(){
+		 byte[] dataPacket = this.handler.sHeartBeat();
+		 this.sendPacket(dataPacket);
+	 }
 	
-	
-	
-
+	 public void sendGetCarGroupCmd(int userid,String date){
+		 byte[] dataPacket = this.handler.sGetCarGroup(userid, date);
+		 this.sendPacket(dataPacket);
+	 }
+	 
+	 public void sendGetUserInfoCmd(int userid){
+		 byte[] dataPacket = this.handler.sGetUserInfo(userid);
+		 this.sendPacket(dataPacket);
+	 }
+	 
+	 public void sendGetCarInfoCmd(int userid,String date){
+		 byte[] dataPacket = this.handler.sGetCarInfo(userid, date);
+		 this.sendPacket(dataPacket);
+	 }
+	 
+	 public void sendGetCarTrackCmd(int carid,String sdate,String edate){
+		 byte[] dataPacket = this.handler.sGetCarTrack(carid, sdate, edate);
+		 this.sendPacket(dataPacket);
+	 }
+	 
+	 public void sendGetAlarmListCmd(String carid,String sdate,String edate,String alarmType){
+		 byte[] dataPacket = this.handler.sGetAlarmList(carid, sdate, edate, alarmType);
+		 this.sendPacket(dataPacket);
+	 }
+	 
 }

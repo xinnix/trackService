@@ -11,32 +11,33 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudbean.model.Track;
-
+import com.cloudbean.trackme.TrackAppClient;
 import com.sun.xml.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 @Path("/track")
 public class TrackResources {
-	
-		@POST
-	   @Path("track")
-	   @Produces(MediaType.APPLICATION_JSON)
-	   public List<Track> checkLogin(
-			    @FormParam("username") String username,
-			    @FormParam("carId") int carid,
-				@FormParam("start_time") String sdate,
-				@FormParam("end_time") String edate) {
 
-		   if(sdate!=null&edate!=null){
-			   SocketListener.mainTranslator.getTrackAppClient(username).getHandler().sGetCarTrack(carid, sdate, edate);
-		   }
+	@POST
+	@Path("track")
+	@Produces("text/plain")
+	public String getTrackList(
+			@FormParam("username") String username,
+			@FormParam("carId") int carId,
+			@FormParam("start_time") String sdate,
+			@FormParam("end_time") String edate) {
 
-		   try{
-			    Thread.currentThread().sleep(4000);
-			}catch(InterruptedException ie){
-			    ie.printStackTrace();
-			}
-		   
-	       return Arrays.asList(SocketListener.mainTranslator.getTrackAppClient(username).getCurTrackList());
-	   }
+		TrackAppClient appClient = SocketListener.mainTranslator.getTrackAppClient(username);
+
+		if(carId>0
+				&sdate!=null
+				&edate!=null){
+			appClient.getNa().sendGetCarTrackCmd(carId, sdate, edate);
+			// return a wilddog ref not a tracklist
+			String wdRef = "" + username + "/" + carId + sdate + edate;
+			return wdRef;
+		} 
+
+		return null;
+	}
 
 }
