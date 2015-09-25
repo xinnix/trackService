@@ -10,10 +10,6 @@ import com.cloudbean.trackerUtil.ByteHexUtil;
 
 public class MsgGPRSParser {
 	
-
-
-
-
 	public static short MSG_SEND = 0x01;
 	public static short MSG_RECV = 0x02;
 	public static short MSG_SEND_HEADER = 0x4040;
@@ -23,6 +19,11 @@ public class MsgGPRSParser {
 	public static short MSG_TYPE_GETPOSITION = 0x4101;
 	public final static short MSG_TYPE_DEF = 0x4352;
 	public final static short MSG_TYPE_CIRCUIT = 0x5114;
+	public final static short MSG_TYPE_PHONE = 0x4130;
+	public final static short MSG_TYPE_GPSREBOOT = 0x4902;
+	public final static short MSG_TYPE_EXPANDCOMMAND = 0x4108;
+	public final static short MSG_TYPE_GPSHEARTBEAT = 0x5199;
+	public final static short MSG_TYPE_TRACEINTERVAL = 0x4102;
 	public final static short MSG_TYPE_ALARM = (short) 0x9999;
 	
 	public final static short MSG_TYPE_POSITION = (short)0x9955; 
@@ -67,19 +68,35 @@ public class MsgGPRSParser {
 	public MsgGPRSParser(String msgTermID, short msgType, String msgData) {
 		super();
 		this.msgHead = MSG_SEND_HEADER;
-		int datalen = ByteHexUtil.hexStringToBytes(msgData)==null?0:ByteHexUtil.hexStringToBytes(msgData).length;
-		this.msgLength = (short)(2+2+7+2+datalen+2+2);
 		this.msgTermID = msgTermID;
-		this.msgType = msgType;
+		
 		this.msgData = msgData;
 		this.msgEnd = MSG_END;
+		byte[] data;
+		int datalen;
+		
+		if (this.msgType == MSG_TYPE_PHONE
+				|| this.msgType == MSG_TYPE_GPSHEARTBEAT){
+				data = this.msgData.getBytes();
+				datalen = (data==null)?0:data.length;
+		}else if (this.msgType == MSG_TYPE_TRACEINTERVAL){
+				data = ByteHexUtil.intToByte(Integer.parseInt(this.msgData));
+				datalen = (data==null)?0:data.length;
+		}else{
+				data = ByteHexUtil.hexStringToBytes(this.msgData);
+				datalen = ByteHexUtil.hexStringToBytes(msgData)==null?0:ByteHexUtil.hexStringToBytes(msgData).length;
+		}
+		
+		
+		this.msgLength = (short)(2+2+7+2+datalen+2+2);
+		
 		ByteArrayOutputStream  bis = new ByteArrayOutputStream();
 		try{
 			bis.write(ByteHexUtil.shortToByte(this.msgHead));
 			bis.write(ByteHexUtil.shortToByte(this.msgLength));
 			bis.write(ByteHexUtil.hexStringToBytes(this.msgTermID));
 			bis.write(ByteHexUtil.shortToByte(this.msgType));
-			byte[] data = ByteHexUtil.hexStringToBytes(this.msgData);
+			
 			if (data!=null){
 				bis.write(data);
 			}
