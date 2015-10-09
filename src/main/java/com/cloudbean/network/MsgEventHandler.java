@@ -12,6 +12,7 @@ import com.cloudbean.model.Car;
 import com.cloudbean.model.CarGroup;
 import com.cloudbean.model.CarState;
 import com.cloudbean.model.Fail;
+import com.cloudbean.model.GPRMC;
 import com.cloudbean.model.Login;
 import com.cloudbean.model.Track;
 import com.cloudbean.model.User;
@@ -319,6 +320,12 @@ public class MsgEventHandler {
 		}
 				
 		return cs;			
+	}
+	
+	public GPRMC c_rParseGPRMC(MsgGPRSParser mgp){
+		String[] org = mgp.msgData.split("\\|");
+		GPRMC gprmc = new GPRMC(org[0]);
+		return gprmc;
 	}
 	
 	public Alarm c_rGetAlarmInfo(MsgGPRSParser mgp){		

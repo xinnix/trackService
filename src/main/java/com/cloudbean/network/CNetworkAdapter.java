@@ -9,6 +9,7 @@ import java.util.Map;
 import com.cloudbean.model.Alarm;
 import com.cloudbean.model.Car;
 import com.cloudbean.model.CarState;
+import com.cloudbean.model.GPRMC;
 import com.cloudbean.packet.CPacketParser;
 import com.cloudbean.packet.DPacketParser;
 import com.cloudbean.packet.MsgGPRSParser;
@@ -29,6 +30,7 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 	public static int MSG_ALARM = 0x2005;
 	public static int MSG_POSCOMPLETE = 0x2006;
 	Map<String, CarState> carPosition=new HashMap<String, CarState>();
+	Map<String, GPRMC> carGPRMC=new HashMap<String, GPRMC>();
 	
 	public CNetworkAdapter(final String serverIP,final int port){
 		super(serverIP,port);
@@ -77,9 +79,11 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 			switch (cp.pktSignal){
 			case CPacketParser.SIGNAL_RE_LOGIN:
 				 System.out.println("Receving packet type: login [from center control server]");
-				// int i = this.handler.c_rLogin(cp);
-				this.sendGetAllLastPosition();
-				//msg.what =MSG_LOGIN;
+				 // if login succ, then get all last position
+				 if (this.handler.c_rLogin(cp) == 1) {
+					 this.sendGetAllLastPosition();
+				 }
+				
 				break;
 			case CPacketParser.SIGNAL_PREPOSITION:
 				break;
@@ -124,41 +128,22 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 				case MsgGPRSParser.MSG_TYPE_POSITION:
 					System.out.println("Receving packet type: msg type postion [from center control server]");
 					CarState cs =this.handler.c_rGetCarPosition(mgp);
-					if(cs.gprmc.latitude!=0&&cs.gprmc.longitude!=0){
-
-						// TODO need to be tested.
-//						final Wilddog carSetRef = wdRootRef.child("car");
-//						final Car car;
-//						carSetRef.addListenerForSingleValueEvent(new ValueEventListener(){
-//						     public void onDataChange(DataSnapshot snapshot){
-//						         System.out.println("the last car:" + snapshot.getValue());
-//						         Map<String, Car> carSet = (HashMap<String, Car>) snapshot.getValue();        
-//						         car = carSet.get(cs.devid);
-//						         car.setLastState(car.getCurState());
-//						         car.setCurState(cs);
-//						         car.alive++;
-//						         carSet.put(cs.devid, car);
-//						         carSetRef.setValue(carSet);
-//						     }
-//
-//						     public void onCancelled(WilddogError error){
-//						         if(error != null){
-//						             System.out.println(error.getCode());
-//						         }
-//						     }
-
-//						});
-						
+					GPRMC gprmc = this.handler.c_rParseGPRMC(mgp);
+					if(gprmc.latitude!=0&&gprmc.longitude!=0){
 
 						// GPS correct
 						double[] correctXY = new double[2];
-						GpsCorrect.transform(cs.gprmc.latitude, cs.gprmc.longitude, correctXY);
-						cs.gprmc.latitude = correctXY[0];
-						cs.gprmc.longitude = correctXY[1];
-
+						GpsCorrect.transform(gprmc.latitude, gprmc.longitude, correctXY);
+						gprmc.latitude = correctXY[0];
+						gprmc.longitude = correctXY[1];
+						
+						carGPRMC.put("gprmc", gprmc);						
 						carPosition.put(cs.devid, cs);
+						
 						Wilddog devRef = wdRootRef.child("position");
 						devRef.setValue(carPosition);
+						
+						devRef.child(cs.devid).setValue(carGPRMC);
 					}
 					break;
 				 case MsgGPRSParser.MSG_TYPE_PHONE:
