@@ -12,6 +12,7 @@ import com.cloudbean.model.Car;
 import com.cloudbean.model.CarGroup;
 import com.cloudbean.model.CarState;
 import com.cloudbean.model.Fail;
+import com.cloudbean.model.GPRMC;
 import com.cloudbean.model.Login;
 import com.cloudbean.model.Track;
 import com.cloudbean.model.User;
@@ -295,7 +296,19 @@ public class MsgEventHandler {
 		// String res = c_sCommand(car,MsgGPRSParser.MSG_TYPE_GETPOSITION,"");			
 	}
 	
-	
+	public static Alarm[] rGetAlarmList(DPacketParser dp){
+		 
+		Alarm[] al = new Alarm[dp.dataTable.table.length];
+		for (int ii=0;ii<al.length;ii++){
+			al[ii] = new Alarm((Integer)dp.dataTable.table[ii][0],
+					(String)dp.dataTable.table[ii][1],
+					(String)dp.dataTable.table[ii][2]
+					);
+		}
+
+		return al;
+		
+	}
 	public CarState c_rGetCarPosition(MsgGPRSParser mgp){
 		CarState cs = new CarState(mgp.msgData);
 		int i  = mgp.msgTermID.indexOf("f");		
@@ -309,10 +322,19 @@ public class MsgEventHandler {
 		return cs;			
 	}
 	
-	public Alarm c_rGetAlarmInfo(MsgGPRSParser mgp){
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+	public GPRMC c_rParseGPRMC(MsgGPRSParser mgp){
+		String[] org = mgp.msgData.split("\\|");
+		GPRMC gprmc = new GPRMC(org[0]);
+		return gprmc;
+	}
+	
+	public Alarm c_rGetAlarmInfo(MsgGPRSParser mgp){		
 		int alarmType = ByteHexUtil.hexStringToBytes(mgp.msgData.substring(0, 2))[0];
-		Alarm al = new Alarm(mgp.msgTermID,format.format(new Date()),alarmMap.get(alarmType));
+		String alarm = alarmMap.get(alarmType);
+		if(alarm==null){
+			alarm = "未知报警类型";
+		}
+		Alarm al = new Alarm(mgp.msgTermID,alarm);
 		return al;
 	}
 
@@ -347,6 +369,34 @@ public class MsgEventHandler {
 		
 	}
 	
+
+	public byte[] c_sSetPhone(Car car,String data){			
+		return c_sCommand(car, MsgGPRSParser.MSG_TYPE_PHONE, data);		
+	}
+	
+	public byte[] c_sGPSReboot(Car car,String data){	
+		
+		return c_sCommand(car,MsgGPRSParser.MSG_TYPE_GPSREBOOT,data);
+		
+	}
+	
+	public   byte[] c_sExpandCommand(Car car,String data){	
+		
+		return c_sCommand(car,MsgGPRSParser.MSG_TYPE_EXPANDCOMMAND,data);
+		
+	}
+	
+	public  byte[] c_sGPSHeartBeat(Car car,String data){	
+		
+		return c_sCommand(car,MsgGPRSParser.MSG_TYPE_GPSHEARTBEAT,data);
+		
+	}
+	
+	public  byte[] c_sTraceInterval(Car car,String data){	
+		
+		return c_sCommand(car,MsgGPRSParser.MSG_TYPE_GPSHEARTBEAT,data);
+		
+	}
 	
 	/**
      * 把IP地址转化为int

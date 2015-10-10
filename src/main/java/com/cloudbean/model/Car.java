@@ -10,9 +10,20 @@ public class Car{
 	public String devtype;
 	public String carGroupId;
 	public int alive = 0;
-	public CarState lastState;
+	public CarState lastState;	
+	public CarState curState;
 	
 	
+	
+	public CarState getCurState() {
+		return curState;
+	}
+
+
+
+	public void setCurState(CarState curState) {
+		this.curState = curState;
+	}
 	
 	public CarState getLastState() {
 		return lastState;

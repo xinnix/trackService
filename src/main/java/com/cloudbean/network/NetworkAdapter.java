@@ -122,15 +122,15 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 					 devRef = wdRootRef.child("tracklist");
 					 devRef.setValue(track);
 					 break;
-//				 case DPacketParser.SIGNAL_RE_GETALARMLIST:
-//					 Alarm[] alarmList = MsgEventHandler.rGetAlarmList(dp);	
-//					 msg = TrackApp.curHandler.obtainMessage(); 
-//					 bundle = new Bundle();
-//					 bundle.putParcelableArray("alarmlist", alarmList);
-//					 msg.setData(bundle);
-//					 msg.what = MSG_ALARM;
-//					 TrackApp.curHandler.sendMessage(msg);
-//					 break;	
+				 case DPacketParser.SIGNAL_RE_GETALARMLIST:
+					 Alarm[] alarmList = MsgEventHandler.rGetAlarmList(dp);	
+					 Map<String, Alarm> alarmSet= new HashMap<String, Alarm>();
+					 for (int ii=0;ii<alarmList.length;ii++){
+						 alarmSet.put(alarmList[ii].termid, alarmList[ii]);
+					 }
+					 devRef = wdRootRef.child("alarmlist");
+					 devRef.setValue(alarmSet);
+					 break;	
 				 case DPacketParser.SIGNAL_FAIL:
 					 System.out.println("Receving packet type: Fail");
 					 Fail curFail = this.handler.rFail(dp);
