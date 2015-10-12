@@ -30,11 +30,10 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 	public static int MSG_CARGROUPINFO = 0x1003;
 	public static int MSG_TRACK = 0x1004;
 	public static int MSG_ALARM = 0x1005;
-
-	 Wilddog devRef =null;
+	Wilddog devRef =null;
 	
-	 public NetworkAdapter(final String serverIP,final int port){
-		 super(serverIP,port);
+	 public NetworkAdapter(final String serverIP,final int port ){
+		 super(serverIP, port );
 		 connect();
 		 System.out.println("start socket of networkAdapter");
 	}
@@ -73,6 +72,10 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 					 System.out.println("Receving packet type: login");
 					 Login l = this.handler.rLogin(dp);
 					 Map<String, Login> loginInfo= new HashMap<String, Login>();
+					 
+					 // get the client
+					 //TrackAppClient appClient = SocketListener.mainTranslator.getTrackAppClient(this.getUsername());
+					 
 					 String sid = SocketListener.mainTranslator.getTrackAppClient(this.getUsername()).getSessionID();
 					 loginInfo.put(""+l.userid, l);
 					 devRef = wdRootRef.child("login/" + sid);
@@ -86,6 +89,12 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 				 case DPacketParser.SIGNAL_RE_GETCARGROUP:
 					 System.out.println("Receving packet type: carGroupInfo");
 					 CarGroup[] carGroupList = this.handler.rGetCarGroup(dp);
+					 // save group list to the appClient
+					 // get the client
+					 TrackAppClient appClient2 = SocketListener.mainTranslator.getTrackAppClient(this.getUsername());
+					 appClient2.setCarGroupList(carGroupList);
+					 System.out.println("[Group]save to track app client with " + carGroupList.length + " car Group");
+					 
 					 Map<String, CarGroup> carGroup= new HashMap<String, CarGroup>();
 					 for (int ii=0;ii<carGroupList.length;ii++){
 						 carGroup.put(""+carGroupList[ii].vehGroupID, carGroupList[ii]);
@@ -100,10 +109,17 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 				 case DPacketParser.SIGNAL_RE_GETCARINFO:
 					 System.out.println("Receving packet type: get car info");
 					 Car[] carList=this.handler.rGetCarInfo(dp);
+					 // save car list to the appClient
+					 // get the client
+					 TrackAppClient appClient3 = SocketListener.mainTranslator.getTrackAppClient(this.getUsername());
+					 appClient3.setCarList(carList);
+					 
+					 System.out.println("[CAR--]save to track app client with " + carList.length + " cars");
 					 Map<String, Car> car= new HashMap<String, Car>();
 					 for (int ii=0;ii<carList.length;ii++){
 						 car.put(""+carList[ii].id, carList[ii]);
 					 }
+					 
 					 devRef = wdRootRef.child("car");
 					 devRef.setValue(car);
 					 

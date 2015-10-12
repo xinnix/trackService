@@ -2,9 +2,14 @@ package com.cloudbean.network;
 
 
 import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import trackService.SocketListener;
 
 import com.cloudbean.model.Alarm;
 import com.cloudbean.model.Car;
@@ -15,6 +20,7 @@ import com.cloudbean.packet.DPacketParser;
 import com.cloudbean.packet.MsgGPRSParser;
 import com.cloudbean.trackerUtil.ByteHexUtil;
 import com.cloudbean.trackerUtil.GpsCorrect;
+import com.cloudbean.trackme.TrackAppClient;
 import com.wilddog.client.DataSnapshot;
 import com.wilddog.client.ValueEventListener;
 import com.wilddog.client.Wilddog;
@@ -29,11 +35,11 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 	public static int MSG_CIRCUIT = 0x2004;
 	public static int MSG_ALARM = 0x2005;
 	public static int MSG_POSCOMPLETE = 0x2006;
-	Map<String, CarState> carPosition=new HashMap<String, CarState>();
+	Map<String, HashMap> carPosition=new HashMap<String, HashMap>();
 	Map<String, GPRMC> carGPRMC=new HashMap<String, GPRMC>();
 	
-	public CNetworkAdapter(final String serverIP,final int port){
-		super(serverIP,port);
+	public CNetworkAdapter(final String serverIP,final int port ){
+		super(serverIP, port );
 		connect(); 
 		System.out.println("start socket of center-control-networkAdapter");
 	}
@@ -75,7 +81,8 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 			byte[] packetByte  = preParser();
 
 			CPacketParser cp = new CPacketParser(packetByte);
-
+			
+			
 			switch (cp.pktSignal){
 			case CPacketParser.SIGNAL_RE_LOGIN:
 				 System.out.println("Receving packet type: login [from center control server]");
@@ -101,22 +108,7 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 						 alarmtype = "出区域报警";
 					 }
 				 }
-				 // final Alarm alarm = new Alarm(cp.pktFakeIP,alarmtype);
-				 //TrackApp.alarmList.add(alarm);
-//				 if(alarm.alarmType != null){
-//					 new Thread(){
-//							@Override
-//							public void run() {
-//								// TODO Auto-generated method stub
-//								Looper.prepare();
-//								Toast.makeText(context,alarm.termName+"发生"+alarm.alarmType ,Toast.LENGTH_SHORT).show();
-//								Looper.loop();
-//							}	 
-//						 }.start();
-//				 }
-//				 
-//				msg.what =MSG_ALARM;
-//				TrackApp.curHandle
+				 break;
 			case CPacketParser.SIGNAL_RELAY:
 				MsgGPRSParser mgp =  new MsgGPRSParser(Arrays.copyOfRange(cp.pktData, 4, cp.pktData.length));
 				String resultMsg = "";
@@ -127,24 +119,86 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 					break;
 				case MsgGPRSParser.MSG_TYPE_POSITION:
 					System.out.println("[recv:postion-cna]:" + this.getUsername());
-					CarState cs =this.handler.c_rGetCarPosition(mgp);
+					// get the client
+					TrackAppClient appClient = SocketListener.mainTranslator.getTrackAppClient(this.getUsername());
+					Car[] carList = appClient.getCarList();
+					HashMap<String, String> carStateMap = new HashMap<String, String>();
+					String curCarDevType = "";
+					CarState cs =this.handler.c_rGetCarPosition(mgp);					
 					GPRMC gprmc = this.handler.c_rParseGPRMC(mgp);
+					if(carList == null || gprmc == null){
+						break;
+					}
+					System.out.println("position compare with " + carList.length + " cars");
+					for(int i=0; i<carList.length; i++){
+						System.out.println("[compare] with the " + i 
+								+ " cars: carList[i].devId is #" + carList[i].devId
+								+ "# and cs.devid is #"+ cs.devid + "#");
+						if(carList[i].devId .equals(cs.devid)){
+							curCarDevType = carList[i].getDevtype();
+							System.out.println("[Bingo] Got the son of bitch. curCarDevType is " + curCarDevType);							
+						}
+					}
+					String accState;
+					String voltage ;
+					double voltageDbl ;
+					DecimalFormat formatter = new DecimalFormat("##0.0");
+					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					if(curCarDevType.equals("MT400")){
+						carStateMap.put("devtype", "MT400");
+					 	carStateMap.put("temperature", "0");
+						accState = ByteHexUtil.getBooleanArray(cs.portState[0])[6] ? "开"
+: "关";
+						carStateMap.put("accState", accState);
+						voltageDbl = cs.voltage * 3.2 * 16 / 4096;							
+						voltage = formatter.format(voltageDbl);
+						carStateMap.put("voltage", voltage);
+					} else if (curCarDevType.equals("VT310")){
+						carStateMap.put("devtype", "VT310");
+						if (Float.parseFloat(cs.temperature) < 200){
+							carStateMap.put("temperature", cs.temperature);
+						} else {
+							carStateMap.put("temperature", "0");
+						}
+						
+						accState = ByteHexUtil.getBooleanArray(cs.portState[0])[3] ? "开"
+: "关";
+						carStateMap.put("accState", accState);
+						voltageDbl = cs.voltage * 3.2 * 16 / 4096;
+						
+						voltage = formatter.format(voltageDbl);
+						carStateMap.put("voltage", voltage);
+					}else{
+						carStateMap.put("devtype", curCarDevType);
+						carStateMap.put("temperature", "0");
+						voltageDbl = cs.voltage * 3.3 / 2048 + 0.5;
+						voltage = formatter.format(voltageDbl);
+						carStateMap.put("voltage", voltage);
+						carStateMap.put("accState", "无状态");						
+					}
+					carStateMap.put("speed", gprmc.speed);
+					carStateMap.put("distant", cs.distant);
+					carStateMap.put("date", dateFormat.format(new Date()));
+					carStateMap.put("gsmStrength", "" + ByteHexUtil.hexStringToBytes(cs.gsmStrength)[0]);
+					
+					// format the latitude and longitude
+					DecimalFormat Latiformatter = new DecimalFormat("##0.000000");
 					if(gprmc.latitude!=0&&gprmc.longitude!=0){
-
 						// GPS correct
 						double[] correctXY = new double[2];
 						GpsCorrect.transform(gprmc.latitude, gprmc.longitude, correctXY);
 						gprmc.latitude = correctXY[0];
 						gprmc.longitude = correctXY[1];
-						
-						carGPRMC.put("gprmc", gprmc);						
-						carPosition.put(cs.devid, cs);
-						
-						Wilddog devRef = wdRootRef.child("position");
-						devRef.setValue(carPosition);
-						
-						devRef.child(cs.devid).setValue(carGPRMC);
-					}
+						cs.setGprmc(gprmc);
+						carStateMap.put("lat", Latiformatter.format(gprmc.latitude));
+						carStateMap.put("lon", Latiformatter.format(gprmc.longitude));
+					}	
+					gprmc = null;
+					
+					carPosition.put(cs.devid, carStateMap);					
+					Wilddog positionRef = wdRootRef.child("position");				    
+					positionRef.setValue(carPosition);										
+					
 					break;
 				 case MsgGPRSParser.MSG_TYPE_PHONE:
 					 resultMsg = mgp.msgData.equals("00")?"监听号码设置失败":"监听号码设置成功";

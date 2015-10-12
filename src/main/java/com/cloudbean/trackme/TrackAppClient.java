@@ -39,7 +39,7 @@ public class TrackAppClient {
 	// connect number + 1
 	public void incConnectedConut() {
 		this.connectedConut = this.connectedConut + 1;
-		System.out.println("[conn]" + this.curUsername + "connected with " + this.connectedConut + " instaces.");
+		System.out.println("[conn]" + this.curUsername + " connected with " + this.connectedConut + " instaces.");
 	}
 	
 	// connect number - 1
@@ -62,13 +62,10 @@ public class TrackAppClient {
 		this.connectedConut = 0;
 		this.curUsername = name;
 		this.na = new NetworkAdapter(dServerIP, dServerPort);
-		this.cna= new CNetworkAdapter(cServerIP, cServerPort);		
-		this.wdRootRef = new Wilddog("https://track-translator.wilddogio.com/" + name);		
+		this.cna= new CNetworkAdapter(cServerIP, cServerPort);	
+		this.wdRootRef = new Wilddog("https://track-translator.wilddogio.com/" + name);	
 		this.na.config(name, this.wdRootRef);
-		this.cna.config(name, this.wdRootRef);
-		// this.na.setWdRootRef(this.wdRootRef);
-		// this.cna.setWdRootRef(this.wdRootRef);
-		// System.out.println("client " + name  + " with a wilddog root ref is " + "https://track-translator.wilddogio.com/");
+		this.cna.config(name, this.wdRootRef);		
 	}
 	
 	public Wilddog getWdRootRef() {

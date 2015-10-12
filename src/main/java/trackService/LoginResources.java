@@ -75,7 +75,7 @@ public class LoginResources {
 				System.out.println(username + " has connected, return the ref directly.");
 			}
 			
-			//  return a wilddog ref not a tracklist
+			// return a wilddog ref not a tracklist
 			return username + "/login/" + appClient.getSessionID();				
 		}
 		return null;

@@ -23,6 +23,7 @@ public abstract class BaseNetworkAdapter extends Thread{
 	public byte[] recieveBuffer = new byte[20000];	
 	private String serverIP = null;
 	private int port = 0;
+	public TrackAppClient appClient ;
 
 	public String getUsername() {
 		return username;
@@ -30,7 +31,7 @@ public abstract class BaseNetworkAdapter extends Thread{
 
 	public void config(String name, Wilddog ref){
 		this.username = name;
-		this.wdRootRef = ref;
+		this.wdRootRef = ref;		
 	}
 	
 	public void setUsername(String username) {

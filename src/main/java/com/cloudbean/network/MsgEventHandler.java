@@ -284,7 +284,7 @@ public class MsgEventHandler {
 	}
 	
 	
-	public CarState c_rGetAllCarPosition(CPacketParser cp){
+	public CarState c_rGetAllCarPosition(CPacketParser cp) {
 		MsgGPRSParser mgp =  new MsgGPRSParser(Arrays.copyOfRange(cp.pktData, 4, cp.pktData.length));
 		CarState cs = new CarState(mgp.msgData);
 		
