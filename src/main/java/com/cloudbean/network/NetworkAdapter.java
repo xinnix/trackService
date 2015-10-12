@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import trackService.SocketListener;
+
 import com.cloudbean.model.Alarm;
 import com.cloudbean.model.Car;
 import com.cloudbean.model.CarGroup;
@@ -17,6 +19,7 @@ import com.cloudbean.model.Track;
 import com.cloudbean.packet.DPacketParser;
 import com.cloudbean.trackerUtil.ByteHexUtil;
 import com.cloudbean.trackerUtil.GpsCorrect;
+import com.cloudbean.trackme.TrackAppClient;
 import com.wilddog.client.Wilddog;
 
 public class NetworkAdapter extends BaseNetworkAdapter {
@@ -70,8 +73,9 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 					 System.out.println("Receving packet type: login");
 					 Login l = this.handler.rLogin(dp);
 					 Map<String, Login> loginInfo= new HashMap<String, Login>();
+					 String sid = SocketListener.mainTranslator.getTrackAppClient(this.getUsername()).getSessionID();
 					 loginInfo.put(""+l.userid, l);
-					 devRef = wdRootRef.child("login");
+					 devRef = wdRootRef.child("login/" + sid);
 					 devRef.setValue(loginInfo);					 
 					 this.sendGetCarInfoCmd(l.userid, "");
 					 this.sendGetCarGroupCmd(l.userid, "");					

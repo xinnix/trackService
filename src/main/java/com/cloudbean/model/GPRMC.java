@@ -16,7 +16,6 @@ public class GPRMC {
 		public String separator;
 		public String check;
 		
-		
 		public GPRMC(String orgString){
 			String org[] = orgString.split(",");
 			this.utc = org[0];

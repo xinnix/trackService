@@ -1,5 +1,7 @@
 package com.cloudbean.trackme;
 
+import java.io.IOException;
+
 import com.cloudbean.network.NetworkAdapter;
 import com.cloudbean.network.CNetworkAdapter;
 import com.wilddog.client.Wilddog;
@@ -19,18 +21,54 @@ public class TrackAppClient {
 	private Fail curFail = null;
 	private NetworkAdapter na;
 	private CNetworkAdapter cna;
+	private String sessionID;
+	private int connectedConut;
+	
+	public String getSessionID() {
+		return sessionID;
+	}
+
+	public int getConnectedConut() {
+		return connectedConut;
+	}
+
+	public void setConnectedConut(int connectedConut) {
+		this.connectedConut = connectedConut;
+	}
+	
+	// connect number + 1
+	public void incConnectedConut() {
+		this.connectedConut = this.connectedConut + 1;
+		System.out.println("[conn]" + this.curUsername + "connected with " + this.connectedConut + " instaces.");
+	}
+	
+	// connect number - 1
+	public void decConnectedConut() {
+		this.connectedConut = this.connectedConut - 1;
+		System.out.println("[exit]" + this.curUsername + "connected with " + this.connectedConut + " instaces.");
+		
+	}
+
+	public void setSessionID(String sessionID) {
+		this.sessionID = sessionID;
+	}
+	
 	public static String dServerIP = "61.145.122.143";
 	public static int dServerPort = 4519;
 	public static String cServerIP  = "61.145.122.143";
 	public static int cServerPort  = 4508;
 	
 	public TrackAppClient(String name){
+		this.connectedConut = 0;
+		this.curUsername = name;
 		this.na = new NetworkAdapter(dServerIP, dServerPort);
 		this.cna= new CNetworkAdapter(cServerIP, cServerPort);		
 		this.wdRootRef = new Wilddog("https://track-translator.wilddogio.com/" + name);		
-		this.na.setWdRootRef(this.wdRootRef);
-		this.cna.setWdRootRef(this.wdRootRef);
-		System.out.println("client " + name  + " with a wilddog root ref is " + "https://track-translator.wilddogio.com/" + name);
+		this.na.config(name, this.wdRootRef);
+		this.cna.config(name, this.wdRootRef);
+		// this.na.setWdRootRef(this.wdRootRef);
+		// this.cna.setWdRootRef(this.wdRootRef);
+		// System.out.println("client " + name  + " with a wilddog root ref is " + "https://track-translator.wilddogio.com/");
 	}
 	
 	public Wilddog getWdRootRef() {
@@ -140,5 +178,19 @@ public class TrackAppClient {
 	public void setCna(CNetworkAdapter cna) {
 		this.cna = cna;
 	}
+	
+	public void stopSocketConnect(){
+		this.na.interrupt();
+		this.cna.interrupt();
 		
+		System.out.println("closing na and cna socket.");
+		// closing na and cna socket.
+		try {
+			this.na.getSocket().close();
+			this.cna.getSocket().close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
 }

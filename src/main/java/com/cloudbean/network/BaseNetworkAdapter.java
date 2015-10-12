@@ -8,10 +8,12 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import com.cloudbean.trackme.TrackAppClient;
 import com.wilddog.client.Wilddog;
 
 public abstract class BaseNetworkAdapter extends Thread{
 	public MsgEventHandler handler;
+	private String username;
 	private  Socket socket;
 	private  OutputStream outputStream;
 	public  InputStream inputStream;
@@ -22,9 +24,24 @@ public abstract class BaseNetworkAdapter extends Thread{
 	private String serverIP = null;
 	private int port = 0;
 
+	public String getUsername() {
+		return username;
+	}
+
+	public void config(String name, Wilddog ref){
+		this.username = name;
+		this.wdRootRef = ref;
+	}
+	
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 	public void setWdRootRef(Wilddog ref){
 		this.wdRootRef = ref;
 	}
+	
+	
 
 	public BaseNetworkAdapter(String serverIP, int port) {
 		super();

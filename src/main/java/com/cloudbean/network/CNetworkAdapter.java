@@ -126,7 +126,7 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 
 					break;
 				case MsgGPRSParser.MSG_TYPE_POSITION:
-					System.out.println("Receving packet type: msg type postion [from center control server]");
+					System.out.println("[recv:postion-cna]:" + this.getUsername());
 					CarState cs =this.handler.c_rGetCarPosition(mgp);
 					GPRMC gprmc = this.handler.c_rParseGPRMC(mgp);
 					if(gprmc.latitude!=0&&gprmc.longitude!=0){
