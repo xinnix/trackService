@@ -34,10 +34,8 @@ public class SocketListener implements ServletContextListener{
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
 		// the whole system entry point for the web server.
-		// web server  Èë¿Ú
+		// web server  ÃˆÃ«Â¿Ãš
 		
-		 Wilddog wdRootRef = new Wilddog("https://track-translator.wilddogio.com/");
-		 wdRootRef.child("test").setValue(SessionIdentifierGenerator.nextSessionId());
 		System.out.println("JAVIS, let's rock and roll");
 	}
 	
