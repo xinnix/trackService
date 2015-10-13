@@ -339,20 +339,20 @@ public class MsgEventHandler {
 	}
 
 	
-	public void c_sSetDef(Car car,String data){		
-		c_sCommand(car,MsgGPRSParser.MSG_TYPE_DEF,data);
+	public byte[] c_sSetDef(String devid, String ipAddress,String data){		
+		return c_sCommand(devid, ipAddress, MsgGPRSParser.MSG_TYPE_DEF,data);
 			
 	}
-	public void c_sSetCircuit(Car car,String data){	
-		c_sCommand(car,MsgGPRSParser.MSG_TYPE_CIRCUIT,data);
+	public byte[] c_sSetCircuit(String devid, String ipAddress,String data){	
+		return c_sCommand(devid, ipAddress, MsgGPRSParser.MSG_TYPE_CIRCUIT,data);
 	}
 	
-	public byte[] c_sCommand(Car car,short commandType,String data){
-		String devid = car.devId;
+	public byte[] c_sCommand(String devid, String ipAddress, short commandType,String data){
+		// String devid = car.devId;
 		for(int i = (14-devid.length());i>0;i--){
 			devid=devid.concat("f");
 		}
-		int fakeip = ByteHexUtil.bytesToInt(ipToBytesByReg(car.ipAddress));
+		int fakeip = ByteHexUtil.bytesToInt(ipToBytesByReg(ipAddress));
 		ByteArrayOutputStream bis = new ByteArrayOutputStream();
 		bis.write(0x0b);
 		MsgGPRSParser mgp = new MsgGPRSParser(devid, commandType, data);
@@ -370,31 +370,31 @@ public class MsgEventHandler {
 	}
 	
 
-	public byte[] c_sSetPhone(Car car,String data){			
-		return c_sCommand(car, MsgGPRSParser.MSG_TYPE_PHONE, data);		
+	public byte[] c_sSetPhone(String devid, String ipAddress,String data){			
+		return c_sCommand(devid, ipAddress, MsgGPRSParser.MSG_TYPE_PHONE, data);		
 	}
 	
-	public byte[] c_sGPSReboot(Car car,String data){	
+	public byte[] c_sGPSReboot(String devid, String ipAddress,String data){	
 		
-		return c_sCommand(car,MsgGPRSParser.MSG_TYPE_GPSREBOOT,data);
-		
-	}
-	
-	public   byte[] c_sExpandCommand(Car car,String data){	
-		
-		return c_sCommand(car,MsgGPRSParser.MSG_TYPE_EXPANDCOMMAND,data);
+		return c_sCommand(devid, ipAddress, MsgGPRSParser.MSG_TYPE_GPSREBOOT,data);
 		
 	}
 	
-	public  byte[] c_sGPSHeartBeat(Car car,String data){	
+	public   byte[] c_sExpandCommand(String devid, String ipAddress,String data){	
 		
-		return c_sCommand(car,MsgGPRSParser.MSG_TYPE_GPSHEARTBEAT,data);
+		return c_sCommand(devid, ipAddress, MsgGPRSParser.MSG_TYPE_EXPANDCOMMAND,data);
 		
 	}
 	
-	public  byte[] c_sTraceInterval(Car car,String data){	
+	public  byte[] c_sGPSHeartBeat(String devid, String ipAddress,String data){	
 		
-		return c_sCommand(car,MsgGPRSParser.MSG_TYPE_GPSHEARTBEAT,data);
+		return c_sCommand(devid, ipAddress, MsgGPRSParser.MSG_TYPE_GPSHEARTBEAT,data);
+		
+	}
+	
+	public  byte[] c_sTraceInterval(String devid, String ipAddress,String data){	
+		
+		return c_sCommand(devid, ipAddress, MsgGPRSParser.MSG_TYPE_GPSHEARTBEAT,data);
 		
 	}
 	

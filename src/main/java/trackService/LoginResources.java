@@ -64,7 +64,7 @@ public class LoginResources {
 				// wait for the appClient init with na and nac's threads, 
 				// before you can read and write with the socket.
 				try {
-					Thread.currentThread().sleep(100);
+					Thread.currentThread().sleep(300);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

@@ -265,31 +265,43 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 		this.sendPacket(dataPacket);
 	}
 	
-	public void sendCommand(Car car,short commandType,String data){
-		byte[] dataPacket = this.handler.c_sCommand(car, commandType, data);
+	public void sendCommand(String car_devid, String ipAddress, short commandType,String data){
+		byte[] dataPacket = this.handler.c_sCommand(car_devid, ipAddress, commandType, data);
 		// return ByteHexUtil.bytesToHexString(dataPacket);
 		this.sendPacket(dataPacket);
 	}	
 	
-	public void sendSetPhoneCommand(Car car, String data){
-		this.sendCommand(car, MsgGPRSParser.MSG_TYPE_PHONE, data);
-	}	
-	
-	public void sendGPSReboot(Car car,String data){
-		this.sendCommand(car, MsgGPRSParser.MSG_TYPE_GPSREBOOT, data);
+	// 发送自定义指令
+	public void sendSetDef(String devid, String ipAddress, String data){
+		byte[] dataPacket = this.handler.c_sSetDef(devid, ipAddress, data);
+		this.sendPacket(dataPacket);			
 	}
 	
-	public void sendExpandCommand(Car car,String data){
-		this.sendCommand(car, MsgGPRSParser.MSG_TYPE_EXPANDCOMMAND, data);
+	
+	public void sendSetCircuit(String devid, String ipAddress,String data){	
+		byte[] dataPacket = this.handler.c_sSetCircuit(devid, ipAddress, data);
+		this.sendPacket(dataPacket);
+	}
+	
+	public void sendSetPhoneCommand(String car_devid, String ipAddress, String data){
+		this.sendCommand(car_devid, ipAddress, MsgGPRSParser.MSG_TYPE_PHONE, data);
+	}	
+	
+	public void sendGPSReboot(String car_devid, String ipAddress,String data){
+		this.sendCommand(car_devid, ipAddress, MsgGPRSParser.MSG_TYPE_GPSREBOOT, data);
+	}
+	
+	public void sendExpandCommand(String car_devid, String ipAddress,String data){
+		this.sendCommand(car_devid, ipAddress, MsgGPRSParser.MSG_TYPE_EXPANDCOMMAND, data);
 	}
 	
 	// 设置GPRS心跳间隔时间
-	public void sendGPSHeartBeat(Car car,String data){
-		this.sendCommand(car, MsgGPRSParser.MSG_TYPE_GPSHEARTBEAT, data);
+	public void sendGPSHeartBeat(String car_devid, String ipAddress,String data){
+		this.sendCommand(car_devid, ipAddress, MsgGPRSParser.MSG_TYPE_GPSHEARTBEAT, data);
 	}
 	
-	public void  sendTraceInterval(Car car,String data){
-		this.sendCommand(car, MsgGPRSParser.MSG_TYPE_TRACEINTERVAL, data);
+	public void  sendTraceInterval(String car_devid, String ipAddress,String data){
+		this.sendCommand(car_devid, ipAddress, MsgGPRSParser.MSG_TYPE_TRACEINTERVAL, data);
 	}
 	
 }
