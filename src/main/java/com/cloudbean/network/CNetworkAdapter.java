@@ -1,7 +1,11 @@
 package com.cloudbean.network;
 
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.net.SocketException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -37,6 +41,7 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 	public static int MSG_POSCOMPLETE = 0x2006;
 	Map<String, HashMap> carPosition=new HashMap<String, HashMap>();
 	Map<String, GPRMC> carGPRMC=new HashMap<String, GPRMC>();
+	private Object outputStream;
 	
 	public CNetworkAdapter(final String serverIP,final int port ){
 		super(serverIP, port );
@@ -66,17 +71,27 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 			bos.write(packet);
 
 
-		}catch(Exception e){
+		}catch(SocketException se){
+			 // when io exception, login again.
+			 System.out.println("[CNA-SocketException exception]for " + this.getUsername()+"\r\n ");	
+			 se.printStackTrace();
+		 }
+		 catch(IOException ioe){
+		 
+			 // when io exception
+			 System.out.println("[CNA-IOexception]for " + this.getUsername() + ", reconnect and send login cmd again.");
+			
+			 
+		 } catch(Exception e){
 			e.printStackTrace();
 		}
 		byte[] buf = bos.toByteArray();
-		String res = ByteHexUtil.bytesToHexString(buf);
+		//String res = ByteHexUtil.bytesToHexString(buf);
 		return buf;
 	}
 
 	@Override
-	public void recivePacket() throws Exception {
-		// TODO Auto-generated method stub
+	public void recivePacket() throws Exception {		
 		try{		  			 			 
 			byte[] packetByte  = preParser();
 
@@ -86,7 +101,7 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 			switch (cp.pktSignal){
 			case CPacketParser.SIGNAL_RE_LOGIN:
 				 System.out.println("Receving packet type: login [from center control server]");
-				 // if login succ, then get all last position
+				 // if login success, then get all last position
 				 if (this.handler.c_rLogin(cp) == 1) {
 					 this.sendGetAllLastPosition();
 				 }
@@ -117,8 +132,7 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 					resultMsg = mgp.msgData.equals("00")? "设防/撤防失败" : "设防/撤防成功";
 
 					break;
-				case MsgGPRSParser.MSG_TYPE_POSITION:
-					System.out.println("[recv:postion-cna]:" + this.getUsername());
+				case MsgGPRSParser.MSG_TYPE_POSITION:					
 					// get the client
 					TrackAppClient appClient = SocketListener.mainTranslator.getTrackAppClient(this.getUsername());
 					Car[] carList = appClient.getCarList();
@@ -126,17 +140,22 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 					String curCarDevType = "";
 					CarState cs =this.handler.c_rGetCarPosition(mgp);					
 					GPRMC gprmc = this.handler.c_rParseGPRMC(mgp);
-					if(carList == null || gprmc == null){
+					if(carList == null){
+						System.out.println("no cars, send cmd to get all last position for user " + this.getUsername());
+						this.sendGetAllLastPosition();
+						break;
+					}else if(gprmc == null){					
 						break;
 					}
-					System.out.println("position compare with " + carList.length + " cars");
-					for(int i=0; i<carList.length; i++){
-						System.out.println("[compare] with the " + i 
-								+ " cars: carList[i].devId is #" + carList[i].devId
-								+ "# and cs.devid is #"+ cs.devid + "#");
+					
+					for(int i=0; i<carList.length; i++){						
 						if(carList[i].devId .equals(cs.devid)){
 							curCarDevType = carList[i].getDevtype();
-							System.out.println("[Bingo] Got the son of bitch. curCarDevType is " + curCarDevType);							
+							System.out.println(
+									  "[position] " + this.getUsername() 
+									+ " carList[" + i + "] Type:" + curCarDevType 
+									+ " Name:" + carList[i].name 
+									+ " devid:" + cs.devid );							
 						}
 					}
 					String accState;
@@ -155,7 +174,8 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 						carStateMap.put("voltage", voltage);
 					} else if (curCarDevType.equals("VT310")){
 						carStateMap.put("devtype", "VT310");
-						if (Float.parseFloat(cs.temperature) < 200){
+						if (Float.parseFloat(cs.temperature) < 200 
+					        && Float.parseFloat(cs.temperature) > 0){
 							carStateMap.put("temperature", cs.temperature);
 						} else {
 							carStateMap.put("temperature", "0");
@@ -263,6 +283,7 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 		this.sendCommand(car, MsgGPRSParser.MSG_TYPE_EXPANDCOMMAND, data);
 	}
 	
+	// 设置GPRS心跳间隔时间
 	public void sendGPSHeartBeat(Car car,String data){
 		this.sendCommand(car, MsgGPRSParser.MSG_TYPE_GPSHEARTBEAT, data);
 	}

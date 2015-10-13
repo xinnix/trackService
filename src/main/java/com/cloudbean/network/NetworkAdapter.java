@@ -3,7 +3,9 @@ package com.cloudbean.network;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +38,7 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 		 super(serverIP, port );
 		 connect();
 		 System.out.println("start socket of networkAdapter");
+		
 	}
 	
 	 public NetworkAdapter(byte[] packet){
@@ -55,13 +58,24 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 			 bos.write(packet);
 			 
 			 
+		 }catch(SocketException se){
+			 // when io exception, login again.
+			 System.out.println("[NA-SocketException exception]for " + this.getUsername() + "\r\n restarting now.");	
+			 
+		 }
+		 catch(IOException ioe){
+		 
+			 // when io exception, login again.
+			 System.out.println("[NA-IOException]for " + this.getUsername() + ", reconnect and send login cmd again.");
+			
+			 
 		 }catch(Exception e){
-			 throw e;
+			 e.printStackTrace();
 		 }
 		 return bos.toByteArray();
 	 }
  
-	 public void recivePacket() throws Exception {
+	public void recivePacket() throws Exception {
 		 try{			 
 			 byte[] packetByte  = preParser();				 
 				 DPacketParser dp = new DPacketParser(packetByte);
@@ -84,7 +98,7 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 					 this.sendGetCarGroupCmd(l.userid, "");					
 					 break;
 				 case DPacketParser.SIGNAL_RE_HEARTBEAT:
-					 System.out.println("heart beat");
+					 System.out.println("[NA-recv]heart beat successed.");
 					 break;
 				 case DPacketParser.SIGNAL_RE_GETCARGROUP:
 					 System.out.println("Receving packet type: carGroupInfo");
@@ -165,12 +179,31 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 		 }
 	}
 	
+	public void heartBeat() throws Exception{
+		new Thread () {
+			public void run(){				
+				final long  HB_TIME_INTERVAL = 50 * 1000;
+				while(true){
+					sendHeartBeat();
+					System.out.println("[NA-HeartBeat]" + new Date());
+					try {
+						Thread.sleep(HB_TIME_INTERVAL);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
+	}
+	
 	// send login packet command
 	 public void sendLoginCmd(String username, String password){
 		 byte[] dataPacket = this.handler.sLogin(username, password);
 		 this.sendPacket(dataPacket);
 	 }
-	 
+	
+	 // 发送心跳信号，保持socket连接
 	 public void sendHeartBeat(){
 		 byte[] dataPacket = this.handler.sHeartBeat();
 		 this.sendPacket(dataPacket);

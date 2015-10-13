@@ -34,7 +34,7 @@ public class SocketListener implements ServletContextListener{
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
 		// the whole system entry point for the web server.
-		// web server  Èë¿Ú
+		// web server 
 		
 		System.out.println("JAVIS, let's rock and roll");
 	}
