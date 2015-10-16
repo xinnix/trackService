@@ -34,6 +34,11 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 	public static int MSG_ALARM = 0x1005;
 	Wilddog devRef =null;
 	
+	public void reLogin(){
+		byte[] dataPacket = this.handler.sLogin(this.username, this.password);
+		this.sendPacket(dataPacket);
+	}
+	
 	 public NetworkAdapter(final String serverIP,final int port ){
 		 super(serverIP, port );
 		 connect();
@@ -55,19 +60,7 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 			 dis.readFully(packet);
 			 bos.write(ByteHexUtil.intToByte(header));
 			 bos.write(ByteHexUtil.intToByte(datalen));
-			 bos.write(packet);
-			 
-			 
-		 }catch(SocketException se){
-			 // when io exception, login again.
-			 System.out.println("[NA-SocketException exception]for " + this.getUsername() + "\r\n restarting now.");	
-			 
-		 }
-		 catch(IOException ioe){
-		 
-			 // when io exception, login again.
-			 System.out.println("[NA-IOException]for " + this.getUsername() + ", reconnect and send login cmd again.");
-			
+			 bos.write(packet);			 
 			 
 		 }catch(Exception e){
 			 e.printStackTrace();
@@ -86,16 +79,30 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 					 System.out.println("Receving packet type: login");
 					 Login l = this.handler.rLogin(dp);
 					 Map<String, Login> loginInfo= new HashMap<String, Login>();
+					 TrackAppClient appClient4 = SocketListener.mainTranslator.getTrackAppClient(this.getUsername());
+					 String sid = appClient4.getSessionID();
 					 
-					 // get the client
-					 //TrackAppClient appClient = SocketListener.mainTranslator.getTrackAppClient(this.getUsername());
-					 
-					 String sid = SocketListener.mainTranslator.getTrackAppClient(this.getUsername()).getSessionID();
 					 loginInfo.put(""+l.userid, l);
 					 devRef = wdRootRef.child("login/" + sid);
-					 devRef.setValue(loginInfo);					 
-					 this.sendGetCarInfoCmd(l.userid, "");
-					 this.sendGetCarGroupCmd(l.userid, "");					
+					 devRef.setValue(loginInfo);
+					 
+					 if (l.isLogin == 1){
+						 // login succ
+						 this.setPassword(tmpPassword);
+						 this.isLoginValid = true;
+						 this.sendGetCarInfoCmd(l.userid, "");
+						 this.sendGetCarGroupCmd(l.userid, "");		
+					 } else {
+						// TODO: login fail, nothing to do.
+						 
+						 // if only this client and the credentials are not valid, 
+						 // then release all the resource, remove the client .
+						if(appClient4.getConnectedConut() == 1){ 
+							appClient4.stopSocketConnect();
+							SocketListener.mainTranslator.removeTrackAppClient(this.getUsername());
+						}
+					 }
+							
 					 break;
 				 case DPacketParser.SIGNAL_RE_HEARTBEAT:
 					 System.out.println("[NA-recv]heart beat successed.");
@@ -200,6 +207,8 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 	// send login packet command
 	 public void sendLoginCmd(String username, String password){
 		 byte[] dataPacket = this.handler.sLogin(username, password);
+		 this.username = username;
+		 this.tmpPassword = password;
 		 this.sendPacket(dataPacket);
 	 }
 	

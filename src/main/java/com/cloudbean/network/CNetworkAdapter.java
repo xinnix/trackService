@@ -42,6 +42,13 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 	Map<String, HashMap> carPosition=new HashMap<String, HashMap>();
 	Map<String, GPRMC> carGPRMC=new HashMap<String, GPRMC>();
 	private Object outputStream;
+	private boolean isGettingAllLastPosition = false;
+	
+	public void reLogin(){
+		System.out.println("[CNA-RELOGIN] for " + this.username + " with password: " + this.password);
+		byte[] dataPacket = this.handler.c_sLogin(this.username, this.password);
+		this.sendPacket(dataPacket);
+	}
 	
 	public CNetworkAdapter(final String serverIP,final int port ){
 		super(serverIP, port );
@@ -53,10 +60,10 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 		super(packet);
 	}
 
-	public byte[] preParser(){
+	public byte[] preParser() throws Exception{
 
 		ByteArrayOutputStream  bos = new ByteArrayOutputStream();
-		try{
+		
 			short header = dis.readShort();
 			byte signal = dis.readByte();
 			short datalen = dis.readShort();
@@ -71,20 +78,6 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 			bos.write(packet);
 
 
-		}catch(SocketException se){
-			 // when io exception, login again.
-			 System.out.println("[CNA-SocketException exception]for " + this.getUsername()+"\r\n ");	
-			 se.printStackTrace();
-		 }
-		 catch(IOException ioe){
-		 
-			 // when io exception
-			 System.out.println("[CNA-IOexception]for " + this.getUsername() + ", reconnect and send login cmd again.");
-			
-			 
-		 } catch(Exception e){
-			e.printStackTrace();
-		}
 		byte[] buf = bos.toByteArray();
 		//String res = ByteHexUtil.bytesToHexString(buf);
 		return buf;
@@ -92,25 +85,30 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 
 	@Override
 	public void recivePacket() throws Exception {		
-		try{		  			 			 
+				  			 			 
 			byte[] packetByte  = preParser();
 
-			CPacketParser cp = new CPacketParser(packetByte);
-			
+			CPacketParser cp = new CPacketParser(packetByte);			
 			
 			switch (cp.pktSignal){
 			case CPacketParser.SIGNAL_RE_LOGIN:
 				 System.out.println("Receving packet type: login [from center control server]");
 				 // if login success, then get all last position
-				 if (this.handler.c_rLogin(cp) == 1) {
+				 if (this.handler.c_rLogin(cp) == 0) {
+					 this.isLoginValid = true;
+					 this.password = this.tmpPassword;					
 					 this.sendGetAllLastPosition();
+					 
 				 }
 				
 				break;
 			case CPacketParser.SIGNAL_PREPOSITION:
+				System.out.println(new Date() +"start to get all the last position");
+				this.isGettingAllLastPosition = true;
 				break;
 			case CPacketParser.SIGNAL_POSCOMPLETE:
-
+				this.isGettingAllLastPosition = false;
+				System.out.println(new Date() + "end to get all the last position");
 				break;
 			 case CPacketParser.SIGNAL_CENTERALARM:
 				 //final Alarm alarm = null;
@@ -138,11 +136,12 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 					Car[] carList = appClient.getCarList();
 					HashMap<String, String> carStateMap = new HashMap<String, String>();
 					String curCarDevType = "";
-					CarState cs =this.handler.c_rGetCarPosition(mgp);					
+					CarState cs = this.handler.c_rGetCarPosition(mgp);					
 					GPRMC gprmc = this.handler.c_rParseGPRMC(mgp);
 					if(carList == null){
 						System.out.println("no cars, send cmd to get all last position for user " + this.getUsername());
 						this.sendGetAllLastPosition();
+						
 						break;
 					}else if(gprmc == null){					
 						break;
@@ -234,18 +233,15 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 					String test = ByteHexUtil.bytesToHexString(mgp.msgByteBuf);
 					break;
 				case MsgGPRSParser.MSG_TYPE_ALARM:
-					System.out.println("Receving packet type: msg type alarm [from center control server]");
 					Alarm al = this.handler.c_rGetAlarmInfo(mgp);
+					System.out.println("[CNA-ALARM] type " + al.alarmType + " term-id: " + al.termid + " time: " + al.alarmTime);
 					Map<String, Alarm> carAlarm= new HashMap<String, Alarm>();
 					carAlarm.put(al.termid, al);
 					Wilddog devRef = wdRootRef.child("alarm");
 					devRef.setValue(carAlarm);
 					break;
 				}
-			}
-		}catch(Exception e ){
-			throw e; 
-		}
+			}	
 
 	}
 
@@ -256,13 +252,21 @@ public class CNetworkAdapter extends BaseNetworkAdapter {
 	 */
 	public void sendLoginCmd(String username, String password){
 		byte[] dataPacket = this.handler.c_sLogin(username, password);
+		this.username = username;
+		this.tmpPassword = password;
 		this.sendPacket(dataPacket);
 	}
 	
 	public void sendGetAllLastPosition(){
-		System.out.println("c_sGetAllLastPosition cmd is sending...");
-		byte[] dataPacket = this.handler.c_sGetAllLastPosition();
-		this.sendPacket(dataPacket);
+		if (!this.isGettingAllLastPosition){
+			System.out.println("c_s Get All Last Position cmd is sending...");
+			
+			byte[] dataPacket = this.handler.c_sGetAllLastPosition();
+			this.sendPacket(dataPacket);
+			this.isGettingAllLastPosition = true;
+		}else{
+			System.out.println("[Wait for response] GetAllLastPosition cmd is sending...");
+		}
 	}
 	
 	public void sendCommand(String car_devid, String ipAddress, short commandType,String data){

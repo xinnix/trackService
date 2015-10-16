@@ -2,6 +2,7 @@ package com.cloudbean.network;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,7 +14,9 @@ import com.wilddog.client.Wilddog;
 
 public abstract class BaseNetworkAdapter extends Thread{
 	public MsgEventHandler handler;
-	private String username;
+	protected String username;
+	public String tmpPassword;
+	protected String password;
 	private  Socket socket;
 	private  OutputStream outputStream;
 	public  InputStream inputStream;
@@ -24,7 +27,9 @@ public abstract class BaseNetworkAdapter extends Thread{
 	private String serverIP = null;
 	private int port = 0;
 	public TrackAppClient appClient ;
-
+	private Thread connectThread;
+	boolean isLoginValid = false;
+	
 	public String getUsername() {
 		return username;
 	}
@@ -57,45 +62,50 @@ public abstract class BaseNetworkAdapter extends Thread{
 	}
 
 	public void connect(){
-		new Thread () {
+		this.connectThread = new Thread () {
 			public void run(){				
 				try{
-					socket = new Socket(InetAddress.getByName(serverIP),port);
-					outputStream = socket.getOutputStream();
-					inputStream = socket.getInputStream();
-					dis =  new DataInputStream((new BufferedInputStream(inputStream)));
-
-					while(true){
+					while(!isInterrupted()){
 						try{
-							recivePacket(); 
-						}catch(Exception  e){
+							socket = new Socket(InetAddress.getByName(serverIP),port);
+							outputStream = socket.getOutputStream();
+							inputStream = socket.getInputStream();
+							dis =  new DataInputStream((new BufferedInputStream(inputStream)));
+							
+							System.out.println( getUsername() +" login valid result is " + isLoginValid);
+							if (isLoginValid) {
+								reLogin();
+							} 
+							
+							while(true){
+								try{
+									recivePacket(); 
+								}catch(EOFException  e){									
+									e.printStackTrace();
+									break;
+								}
+							}
+						}catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+								e.printStackTrace();
+								break;
+						}catch(Exception e ){
 							e.printStackTrace();
-							break;
-						} 
-
-						try {
-							sleep(100);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						} 
-					}
-				}catch(Exception e ){
-					e.printStackTrace();						
-				} finally {  						  
-					try  
-					{  			  
-						inputStream.close();			  
-						outputStream.close();			  
-					}  
-					catch (IOException e)  
-					{  
-						e.printStackTrace();  			  
-					}  
-				}  // end of try		
+						}// end of try		 
+							
+							sleep(1000);
+					}// end of while
+				}catch(Exception e){
+					e.printStackTrace();
+				}		
 			}
-		}.start();
+		};
+		
+		connectThread.start();
 	}
 
+	public abstract void reLogin();
+	
 	public Socket getSocket(){
 		return this.socket;
 	}
@@ -111,5 +121,17 @@ public abstract class BaseNetworkAdapter extends Thread{
 	}
 
 	public abstract void recivePacket() throws Exception;
+
+	public Thread getConnectThread() {
+		return connectThread;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}	
 
 }

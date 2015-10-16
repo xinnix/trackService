@@ -177,8 +177,8 @@ public class TrackAppClient {
 	}
 	
 	public void stopSocketConnect(){
-		this.na.interrupt();
-		this.cna.interrupt();
+		this.na.getConnectThread().interrupt();
+		this.cna.getConnectThread().interrupt();
 		
 		System.out.println("closing na and cna socket.");
 		// closing na and cna socket.
