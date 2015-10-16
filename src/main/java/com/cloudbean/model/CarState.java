@@ -30,17 +30,21 @@ public class CarState {
 	}
 	
 	public CarState(String orgString){
-		String[] org = orgString.split("\\|");
-		this.gprmc = new GPRMC(org[0]);
-		this.posAccuracy = org[1];
-		this.height	= org[2];
-		this.portState	= ByteHexUtil.hexStringToBytes(org[3].trim());
-		this.analogInput  = org[4];
-		this.temperature = ""+decodeTemp(this.analogInput);			
-		this.baseStation = org[5];
-		this.gsmStrength = org[6];
-		this.distant = decodeDistant(org[7]);
-		this.voltage = decodeVoltage(org[8]);
+		try{
+			String[] org = orgString.split("\\|");
+			this.gprmc = new GPRMC(org[0]);
+			this.posAccuracy = org[1];
+			this.height	= org[2];
+			this.portState	= ByteHexUtil.hexStringToBytes(org[3].trim());
+			this.analogInput  = org[4];
+			this.temperature = ""+decodeTemp(this.analogInput);			
+			this.baseStation = org[5];
+			this.gsmStrength = org[6];
+			this.distant = decodeDistant(org[7]);
+			this.voltage = decodeVoltage(org[8]);
+		} catch (ArrayIndexOutOfBoundsException e){
+			System.out.println("[CNA-POSITON-DATA-WARN] CarState Parse, ArrayIndexOutOfBoundsException ");
+		}
 				
 	}
 	
