@@ -51,7 +51,13 @@ public class LoginResources {
 			TrackAppClient appClient = null;	
 			appClient = SocketListener.mainTranslator.getTrackAppClient(username);
 			if (appClient != null) {
-				appClient.incConnectedConut();
+				// verify username / password
+				if(appClient.getNa().getPassword() !=null && 
+						appClient.getNa().getPassword().equals(password)){
+					appClient.incConnectedConut();  // if auth succ, increase the count of connect instances.
+				} else {
+					return null;
+				}
 			}
 			
 			if(appClient == null){
@@ -66,7 +72,6 @@ public class LoginResources {
 				try {
 					Thread.currentThread().sleep(1000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				appClient.getNa().sendLoginCmd(username, password);
