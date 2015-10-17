@@ -23,7 +23,16 @@ public class TrackAppClient {
 	private CNetworkAdapter cna;
 	private String sessionID;
 	private int connectedConut;
+	private String trackListHashString;
 	
+	public String getTrackListHashString() {
+		return trackListHashString;
+	}
+
+	public void setTrackListHashString(String trackListHashString) {
+		this.trackListHashString = trackListHashString;
+	}
+
 	public String getSessionID() {
 		return sessionID;
 	}

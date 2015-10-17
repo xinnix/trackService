@@ -191,30 +191,23 @@ public class MsgEventHandler {
 		return dp.pktBuffer;		
 	}
 	
-	public Track[] rGetCarTrack(DPacketParser dp){		
-		System.out.println("got track info");
+	public Track[] rGetCarTrack(DPacketParser dp){	
 		Track[] t = new Track[dp.dataTable.table.length];
 
-			for (int ii=0;ii<t.length;ii++){
-				t[ii] = new Track((Integer)dp.dataTable.table[ii][0],
-						(Double)dp.dataTable.table[ii][1],
-						(Double)dp.dataTable.table[ii][2],
-						(Integer)dp.dataTable.table[ii][3],
-						(Integer)dp.dataTable.table[ii][4],
-						(Boolean)dp.dataTable.table[ii][5],
-						(String)dp.dataTable.table[ii][6],
-						(String)dp.dataTable.table[ii][7],
-						(Boolean)dp.dataTable.table[ii][8],
-						(String)dp.dataTable.table[ii][9]
-						);
-			}
+		for (int ii=0;ii<t.length;ii++){
+			t[ii] = new Track((Integer)dp.dataTable.table[ii][0],
+					(Double)dp.dataTable.table[ii][1],
+					(Double)dp.dataTable.table[ii][2],
+					(Integer)dp.dataTable.table[ii][3],
+					(Integer)dp.dataTable.table[ii][4],
+					(Boolean)dp.dataTable.table[ii][5],
+					(String)dp.dataTable.table[ii][6],
+					(String)dp.dataTable.table[ii][7],
+					(Boolean)dp.dataTable.table[ii][8],
+					(String)dp.dataTable.table[ii][9]
+					);
+		}
 			
-			
-			for (int ii=0;ii<t.length;ii++){
-				System.out.print(""+t[ii].carId+'#'+t[ii].latitude+'|'+t[ii].longitude+"$"+t[ii].sdate);
-				System.out.println("");	
-			}
-		
 		return t;
 	}
 	
@@ -334,7 +327,7 @@ public class MsgEventHandler {
 		if(alarm==null){
 			alarm = "未知报警类型";
 		}
-		Alarm al = new Alarm(mgp.msgTermID,alarm);
+		Alarm al = new Alarm(mgp.msgTermID, alarm);
 		return al;
 	}
 

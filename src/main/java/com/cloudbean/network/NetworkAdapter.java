@@ -146,7 +146,7 @@ public class NetworkAdapter extends BaseNetworkAdapter {
 					 
 					 break;
 				 case DPacketParser.SIGNAL_RE_GETCARTRACK:
-					 System.out.println("Receving packet type: get car track");
+					 System.out.println("[NA-TRACK-LIST] recv data about tracks point array");
 					 Track[] curTrackList = this.handler.rGetCarTrack(dp);
 					 Map<String, Track> track= new HashMap<String, Track>();
 					 for (int ii=0;ii<curTrackList.length;ii++){
@@ -160,8 +160,11 @@ public class NetworkAdapter extends BaseNetworkAdapter {
  						 
 						 track.put(""+ii, curTrackNode);						
 					 }
-					 devRef = wdRootRef.child("tracklist");
+					 
+					 TrackAppClient appClient5= SocketListener.mainTranslator.getTrackAppClient(this.getUsername());
+					 devRef = wdRootRef.child(appClient5.getTrackListHashString());
 					 devRef.setValue(track);
+					 
 					 break;
 				 case DPacketParser.SIGNAL_RE_GETALARMLIST:
 					 Alarm[] alarmList = MsgEventHandler.rGetAlarmList(dp);	

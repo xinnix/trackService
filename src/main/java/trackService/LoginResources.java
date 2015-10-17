@@ -45,7 +45,7 @@ public class LoginResources {
 			@FormParam("username") String username,
 			@FormParam("password") String password) {
 
-		if(username!=null&&password!=null){
+		if(username!=null && password!=null){
 			System.out.println(username + " is connecting...");
 			
 			TrackAppClient appClient = null;	
