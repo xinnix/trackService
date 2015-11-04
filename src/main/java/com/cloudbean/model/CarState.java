@@ -15,8 +15,8 @@ public class CarState {
 	public String baseStation;
 	public String gsmStrength;
 	public String distant;
-	public String voltage;
-	
+	public int voltage;
+	public GPRMC gprmc ;
 	public void setDevid(String devid){
 		
 
@@ -25,20 +25,27 @@ public class CarState {
 	public String getDevid(){
 		return this.devid;
 	}
+	public void setGprmc(GPRMC gprmc){
+		this.gprmc = gprmc;
+	}
 	
 	public CarState(String orgString){
-		String[] org = orgString.split("\\|");
-		this.posAccuracy = org[1];
-		this.height	= org[2];
-		this.portState	= ByteHexUtil.hexStringToBytes(org[3].trim());
-		this.analogInput  = org[4];
-		this.temperature = ""+decodeTemp(this.analogInput);			
-		this.baseStation = org[5];
-		this.gsmStrength = org[6];
-		this.distant = decodeDistant(org[7]);
-		this.voltage = decodeVoltage(org[8]);
-		
-		
+		try{
+			String[] org = orgString.split("\\|");
+			this.gprmc = new GPRMC(org[0]);
+			this.posAccuracy = org[1];
+			this.height	= org[2];
+			this.portState	= ByteHexUtil.hexStringToBytes(org[3].trim());
+			this.analogInput  = org[4];
+			this.temperature = ""+decodeTemp(this.analogInput);			
+			this.baseStation = org[5];
+			this.gsmStrength = org[6];
+			this.distant = decodeDistant(org[7]);
+			this.voltage = decodeVoltage(org[8]);
+		} catch (ArrayIndexOutOfBoundsException e){
+			System.out.println("[CNA-POSITON-DATA-WARN] CarState Parse, ArrayIndexOutOfBoundsException ");
+		}
+				
 	}
 	
 	
@@ -53,14 +60,10 @@ public class CarState {
 		short ress = ByteHexUtil.byteToShort(ByteHexUtil.hexStringToBytes(res));
 		return ress;
 	}
-	private String decodeVoltage(String voltage){
-		byte[] voltageByte = ByteHexUtil.hexStringToBytes(voltage); 
-		int voltageInt  = ByteHexUtil.byteToShort(voltageByte);
-		double res = (voltageInt*3.2*16)/4096;
-		DecimalFormat formatter = new DecimalFormat("##0.0");
-		
-		return formatter.format(res);
-		
+	
+	private int decodeVoltage(String voltage){
+		byte[] vByte = ByteHexUtil.hexStringToBytes(voltage);
+		return ByteHexUtil.byteToShort(vByte);
 	}
 	private String decodeDistant(String dis){
 		return ""+ByteHexUtil.bytesToInt(ByteHexUtil.hexStringToBytes(dis))/1000;

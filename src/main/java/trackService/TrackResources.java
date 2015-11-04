@@ -11,6 +11,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudbean.model.Track;
+import com.cloudbean.trackerUtil.SessionIdentifierGenerator;
 import com.cloudbean.trackme.TrackAppClient;
 import com.sun.xml.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
@@ -22,19 +23,18 @@ public class TrackResources {
 	@Produces("text/plain")
 	public String getTrackList(
 			@FormParam("username") String username,
-			@FormParam("carId") int carId,
-			@FormParam("start_time") String sdate,
-			@FormParam("end_time") String edate) {
+			@FormParam("carid") int carId,
+			@FormParam("sdate") String start_date,
+			@FormParam("edate") String end_date) {
 
 		TrackAppClient appClient = SocketListener.mainTranslator.getTrackAppClient(username);
 
-		if(carId>0
-				&sdate!=null
-				&edate!=null){
-			appClient.getNa().sendGetCarTrackCmd(carId, sdate, edate);
+		if(carId >0 && start_date!=null && end_date!=null){
+			appClient.getNa().sendGetCarTrackCmd(carId, start_date, end_date);
 			// return a wilddog ref not a tracklist
-			String wdRef = "" + username + "/" + carId + sdate + edate;
-			return wdRef;
+			String wdRef = "track/" + carId + "/" + SessionIdentifierGenerator.nextSessionId();
+			appClient.setTrackListHashString(wdRef);
+			return username + "/" + wdRef;
 		} 
 
 		return null;

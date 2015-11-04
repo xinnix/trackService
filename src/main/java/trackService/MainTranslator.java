@@ -19,5 +19,15 @@ public class MainTranslator {
 	public TrackAppClient getTrackAppClient(String name){
 		return mobClientSet.get(name);
 	}
-
+	
+	public boolean removeTrackAppClient(String name){
+		try {
+			mobClientSet.remove(name);
+		}catch(Error e){
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
 }
